@@ -1,0 +1,600 @@
+// =============================================================================
+// AEO.LIVE Database Schema
+// =============================================================================
+// This schema defines all database tables for the AEO.LIVE platform.
+// Run `npx prisma generate` to generate the Prisma Client after changes.
+// Run `npx prisma db push` to push changes to the database.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// CORE ENTITIES
+// =============================================================================
+
+/// Organizations represent teams/companies - the top-level billing entity
+model Organization {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @db.VarChar(255)
+  slug              String   @unique @db.VarChar(100)
+  plan              PlanType @default(STARTER)
+  stripeCustomerId  String?  @map("stripe_customer_id") @db.VarChar(255)
+  settings          Json     @default("{}")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users         User[]
+  subscriptions Subscription[]
+  projects      Project[]
+  apiKeys       ApiKey[]
+  usageEvents   UsageEvent[]
+
+  @@map("organizations")
+}
+
+/// Users belong to organizations and have defined roles
+model User {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String?   @map("organization_id") @db.Uuid
+  email          String    @unique @db.VarChar(255)
+  emailVerified  Boolean   @default(false) @map("email_verified")
+  passwordHash   String?   @map("password_hash") @db.VarChar(255)
+  name           String?   @db.VarChar(255)
+  avatarUrl      String?    @map("avatar_url") @db.VarChar(500)
+  role           UserRole   @default(MEMBER)
+  status         UserStatus @default(ACTIVE)
+  provider       String?    @db.VarChar(50) // google, microsoft, email
+  providerId     String?    @map("provider_id") @db.VarChar(255)
+  lastLoginAt    DateTime?  @map("last_login_at")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  organization       Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  refreshTokens      RefreshToken[]
+  verificationTokens VerificationToken[]
+  leads              Lead[]
+
+  @@index([organizationId], name: "idx_users_org")
+  @@map("users")
+}
+
+/// Refresh tokens for JWT authentication
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_refresh_tokens_user")
+  @@index([token], name: "idx_refresh_tokens_token")
+  @@map("refresh_tokens")
+}
+
+/// Verification tokens for email verification and password reset
+model VerificationToken {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  token     String            @unique @db.VarChar(255)
+  type      VerificationTokenType
+  expiresAt DateTime          @map("expires_at")
+  usedAt    DateTime?         @map("used_at")
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token], name: "idx_verification_tokens_token")
+  @@map("verification_tokens")
+}
+
+// =============================================================================
+// BILLING ENTITIES
+// =============================================================================
+
+/// Subscriptions track Stripe subscription state
+model Subscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  organizationId       String             @map("organization_id") @db.Uuid
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id") @db.VarChar(255)
+  plan                 PlanType
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId], name: "idx_subscriptions_org")
+  @@map("subscriptions")
+}
+
+/// Usage events for metered billing
+model UsageEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  eventType      String   @map("event_type") @db.VarChar(50)
+  metadata       Json     @default("{}")
+  costCents      Int?     @map("cost_cents")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt], name: "idx_usage_org_date")
+  @@map("usage_events")
+}
+
+// =============================================================================
+// LEAD CAPTURE & FREE ANALYSIS TRACKING
+// =============================================================================
+
+/// Leads captured from free analysis flow
+model Lead {
+  id              String   @id @default(uuid()) @db.Uuid
+  firstName       String   @map("first_name") @db.VarChar(100)
+  lastName        String   @map("last_name") @db.VarChar(100)
+  email           String   @unique @db.VarChar(255)
+  phone           String   @db.VarChar(50)
+  businessName    String   @map("business_name") @db.VarChar(255)
+  businessUrl     String   @map("business_url") @db.VarChar(500)
+  
+  // Tracking
+  source          String   @default("free_analysis") @db.VarChar(50)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // Conversion tracking
+  purchasedReport    Boolean   @default(false) @map("purchased_report")
+  subscribedMonthly  Boolean   @default(false) @map("subscribed_monthly")
+  subscriptionDate   DateTime? @map("subscription_date")
+  
+  // Relations
+  analyses        AnalysisRun[]
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId          String?  @map("user_id") @db.Uuid
+
+  @@index([email], name: "idx_leads_email")
+  @@index([createdAt], name: "idx_leads_created")
+  @@map("leads")
+}
+
+/// Full analysis run log with costs and AI data
+model AnalysisRun {
+  id              String   @id @default(uuid()) @db.Uuid
+  
+  // Business info
+  businessName    String   @map("business_name") @db.VarChar(255)
+  businessUrl     String   @map("business_url") @db.VarChar(500)
+  competitorName  String?  @map("competitor_name") @db.VarChar(255)
+  competitorUrl   String   @map("competitor_url") @db.VarChar(500)
+  scope           String   @default("local") @db.VarChar(20) // local | national
+  
+  // Lead reference
+  lead            Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  leadId          String   @map("lead_id") @db.Uuid
+  
+  // Results
+  yourScore       Int?     @map("your_score")
+  competitorScore Int?     @map("competitor_score")
+  status          String   @default("pending") @db.VarChar(20) // pending, running, complete, failed
+  
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+  
+  // Costs
+  costs           AnalysisCost[]
+  totalCostCents  Int?     @map("total_cost_cents")
+  
+  // Raw data & AI logs
+  rawData         Json?    @map("raw_data")         // Crawled content, SEO metrics
+  aiConversations Json?    @map("ai_conversations") // Claude prompts/responses
+  scoringFactors  Json?    @map("scoring_factors")  // What contributed to each score
+  categoryScores  Json?    @map("category_scores")  // Full breakdown by category
+  intelligenceReport Json? @map("intelligence_report") // v3.0 Full intelligence report (brain-melting analysis)
+  
+  // Conversion
+  purchasedFullReport Boolean   @default(false) @map("purchased_full_report")
+  purchaseDate        DateTime? @map("purchase_date")
+  purchaseAmountCents Int?      @map("purchase_amount_cents")
+
+  @@index([leadId], name: "idx_analysis_runs_lead")
+  @@index([createdAt], name: "idx_analysis_runs_created")
+  @@index([status], name: "idx_analysis_runs_status")
+  @@map("analysis_runs")
+}
+
+/// Individual API cost tracking for each analysis
+model AnalysisCost {
+  id          String      @id @default(uuid()) @db.Uuid
+  analysis    AnalysisRun @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysisId  String      @map("analysis_id") @db.Uuid
+  
+  service     String      @db.VarChar(50)  // firecrawl, anthropic, dataforseo, pagespeed
+  operation   String      @db.VarChar(100) // scrape, analyze, competitors, etc.
+  costCents   Int         @map("cost_cents")
+  tokensUsed  Int?        @map("tokens_used") // For Claude
+  
+  metadata    Json?       @default("{}")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([analysisId], name: "idx_analysis_costs_analysis")
+  @@index([service], name: "idx_analysis_costs_service")
+  @@map("analysis_costs")
+}
+
+// =============================================================================
+// PROJECT ENTITIES
+// =============================================================================
+
+/// Projects represent a tracked website + its competitors
+model Project {
+  id                  String              @id @default(uuid()) @db.Uuid
+  organizationId      String              @map("organization_id") @db.Uuid
+  name                String              @db.VarChar(255)
+  primaryDomain       String              @map("primary_domain") @db.VarChar(255)
+  competitors         Json                @default("[]") // Array of competitor domains
+  monitoringFrequency MonitoringFrequency? @map("monitoring_frequency")
+  settings            Json                @default("{}")
+  isActive            Boolean             @default(true) @map("is_active")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  audits       Audit[]
+  alerts       Alert[]
+
+  @@index([organizationId], name: "idx_projects_org")
+  @@map("projects")
+}
+
+// =============================================================================
+// AUDIT ENTITIES
+// =============================================================================
+
+/// Audits represent a point-in-time analysis run
+model Audit {
+  id          String       @id @default(uuid()) @db.Uuid
+  projectId   String       @map("project_id") @db.Uuid
+  type        AuditType
+  status      AuditStatus  @default(PENDING)
+  triggeredBy TriggerType? @map("triggered_by")
+  startedAt   DateTime?    @map("started_at")
+  completedAt DateTime?    @map("completed_at")
+  errorMessage String?     @map("error_message") @db.Text
+  metadata    Json         @default("{}")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  auditSites  AuditSite[]
+  comparisons Comparison[]
+  reports     Report[]
+
+  @@index([projectId], name: "idx_audits_project")
+  @@index([status], name: "idx_audits_status")
+  @@map("audits")
+}
+
+/// AuditSites represent each site analyzed within an audit
+model AuditSite {
+  id        String  @id @default(uuid()) @db.Uuid
+  auditId   String  @map("audit_id") @db.Uuid
+  domain    String  @db.VarChar(255)
+  isPrimary Boolean @default(false) @map("is_primary")
+
+  // Scores (0-100)
+  primaryScore          Int? @map("primary_score")
+  technicalSeoScore     Int? @map("technical_seo_score")
+  onpageSeoScore        Int? @map("onpage_seo_score")
+  contentQualityScore   Int? @map("content_quality_score")
+  aeoReadinessScore     Int? @map("aeo_readiness_score")
+  brandVoiceScore       Int? @map("brand_voice_score")
+  uxEngagementScore     Int? @map("ux_engagement_score")
+  internalStructureScore Int? @map("internal_structure_score")
+
+  // Detailed data
+  subScores     Json @default("{}") @map("sub_scores")
+  pagesDiscovered Int? @map("pages_discovered")
+  pagesAnalyzed   Int? @map("pages_analyzed")
+  crawlData       Json? @map("crawl_data")
+  analysisData    Json? @map("analysis_data")
+  voiceAnalysis   Json? @map("voice_analysis")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  audit      Audit       @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  auditPages AuditPage[]
+  comparisons Comparison[] @relation("PrimarySiteComparisons")
+
+  @@index([auditId], name: "idx_audit_sites_audit")
+  @@map("audit_sites")
+}
+
+/// AuditPages represent individual pages analyzed within a site
+model AuditPage {
+  id          String    @id @default(uuid()) @db.Uuid
+  auditSiteId String    @map("audit_site_id") @db.Uuid
+  url         String    @db.Text
+  title       String?   @db.VarChar(500)
+  metaDescription String? @map("meta_description") @db.Text
+  wordCount   Int?      @map("word_count")
+  pageType    PageType? @map("page_type")
+  depth       Int?
+
+  // Analysis data
+  scores          Json? @default("{}")
+  technicalData   Json? @map("technical_data")
+  contentAnalysis Json? @map("content_analysis")
+  voiceAnalysis   Json? @map("voice_analysis")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  auditSite AuditSite @relation(fields: [auditSiteId], references: [id], onDelete: Cascade)
+
+  @@index([auditSiteId], name: "idx_audit_pages_site")
+  @@map("audit_pages")
+}
+
+// =============================================================================
+// COMPARISON & REPORTING ENTITIES
+// =============================================================================
+
+/// Comparisons hold competitive analysis results
+model Comparison {
+  id            String @id @default(uuid()) @db.Uuid
+  auditId       String @map("audit_id") @db.Uuid
+  primarySiteId String @map("primary_site_id") @db.Uuid
+
+  // Analysis results
+  rankings        Json? // {overall: 2, technical: 1, content: 3, ...}
+  gaps            Json? // [{category: 'content', gap: -25, leader: 'competitor.com'}, ...]
+  insights        Json? // AI-generated insights
+  recommendations Json? // Prioritized recommendations
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  audit       Audit     @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  primarySite AuditSite @relation("PrimarySiteComparisons", fields: [primarySiteId], references: [id], onDelete: Cascade)
+
+  @@map("comparisons")
+}
+
+/// Reports are generated PDF/HTML documents
+model Report {
+  id        String       @id @default(uuid()) @db.Uuid
+  auditId   String       @map("audit_id") @db.Uuid
+  type      ReportType
+  status    ReportStatus @default(GENERATING)
+  fileUrl   String?      @map("file_url") @db.Text
+  fileSize  Int?         @map("file_size")
+  pageCount Int?         @map("page_count")
+  expiresAt DateTime?    @map("expires_at")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+// =============================================================================
+// NOTIFICATION ENTITIES
+// =============================================================================
+
+/// Alerts are notification triggers for users
+model Alert {
+  id        String        @id @default(uuid()) @db.Uuid
+  projectId String        @map("project_id") @db.Uuid
+  type      AlertType
+  severity  AlertSeverity @default(INFO)
+  title     String        @db.VarChar(255)
+  message   String?       @db.Text
+  data      Json          @default("{}")
+  isRead    Boolean       @default(false) @map("is_read")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId], name: "idx_alerts_project")
+  @@index([projectId, isRead], name: "idx_alerts_unread")
+  @@map("alerts")
+}
+
+/// System-wide errors for admin notification and tracking
+model SystemError {
+  id            String           @id @default(uuid()) @db.Uuid
+  type          SystemErrorType
+  severity      ErrorSeverity    @default(MEDIUM)
+  source        String           @db.VarChar(100) // e.g., "analysis", "api", "scoring"
+  message       String           @db.Text
+  stackTrace    String?          @map("stack_trace") @db.Text
+  context       Json             @default("{}")  // analysisId, userId, requestData, etc.
+  
+  // Notification tracking
+  notificationSent Boolean   @default(false) @map("notification_sent")
+  notifiedAt       DateTime? @map("notified_at")
+  
+  // Resolution tracking
+  status         ErrorStatus   @default(NEW)
+  acknowledgedBy String?       @map("acknowledged_by") @db.Uuid
+  acknowledgedAt DateTime?     @map("acknowledged_at")
+  resolvedBy     String?       @map("resolved_by") @db.Uuid
+  resolvedAt     DateTime?     @map("resolved_at")
+  resolution     String?       @db.Text
+  
+  createdAt     DateTime       @default(now()) @map("created_at")
+  
+  @@index([status], name: "idx_system_errors_status")
+  @@index([type], name: "idx_system_errors_type")
+  @@index([createdAt], name: "idx_system_errors_created")
+  @@map("system_errors")
+}
+
+// =============================================================================
+// API ACCESS ENTITIES
+// =============================================================================
+
+/// API Keys for programmatic access
+model ApiKey {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  name           String    @db.VarChar(255)
+  keyHash        String    @map("key_hash") @db.VarChar(255)
+  keyPrefix      String    @map("key_prefix") @db.VarChar(10)
+  permissions    Json      @default("[]")
+  lastUsedAt     DateTime? @map("last_used_at")
+  expiresAt      DateTime? @map("expires_at")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([keyPrefix], name: "idx_api_keys_prefix")
+  @@map("api_keys")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum PlanType {
+  STARTER
+  GROWTH
+  SCALE
+  SCALE_PLUS
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum MonitoringFrequency {
+  MONTHLY
+  WEEKLY
+  TWICE_WEEKLY
+}
+
+enum AuditType {
+  FULL
+  MONITORING
+  ADDON
+}
+
+enum AuditStatus {
+  PENDING
+  CRAWLING
+  ANALYZING
+  COMPLETE
+  FAILED
+}
+
+enum TriggerType {
+  MANUAL
+  SCHEDULED
+  API
+}
+
+enum PageType {
+  HOMEPAGE
+  PILLAR
+  CLUSTER
+  DETAIL
+  ORPHANED
+}
+
+enum ReportType {
+  FULL
+  EXECUTIVE
+  COMPARISON
+}
+
+enum ReportStatus {
+  GENERATING
+  READY
+  FAILED
+}
+
+enum AlertType {
+  SCORE_CHANGE
+  RANK_CHANGE
+  COMPETITOR_ACTIVITY
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum VerificationTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum SystemErrorType {
+  API_FAILURE          // External API calls failed
+  DATA_COLLECTION      // Failed to crawl/scrape data
+  SCORING_FAILURE      // Failed to calculate scores
+  INTEL_GENERATION     // Failed to generate intelligence report
+  DATABASE_ERROR       // Database operation failed
+  AUTH_ERROR           // Authentication/authorization error
+  PAYMENT_ERROR        // Stripe/billing error
+  UNKNOWN              // Catchall
+}
+
+enum ErrorSeverity {
+  LOW      // Minor issues, can wait
+  MEDIUM   // Should be addressed soon
+  HIGH     // Urgent, affects user experience
+  CRITICAL // System down, immediate attention
+}
+
+enum ErrorStatus {
+  NEW           // Just captured
+  ACKNOWLEDGED  // Admin has seen it
+  IN_PROGRESS   // Being worked on
+  RESOLVED      // Fixed
+  IGNORED       // Won't fix
+}
