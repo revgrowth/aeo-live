@@ -16,12 +16,19 @@ async function bootstrap() {
     const port = configService.get<number>('API_PORT', 3001);
     const corsOrigins = configService.get<string>('CORS_ORIGINS', 'http://localhost:3000');
 
+    // Merge env-based origins with hardcoded production origins
+    const allowedOrigins = [
+        ...corsOrigins.split(',').map((origin) => origin.trim()),
+        'https://aeo.live',
+        'https://www.aeo.live',
+    ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
+
     // Security headers
     app.use(helmet());
 
     // CORS configuration
     app.enableCors({
-        origin: corsOrigins.split(',').map((origin) => origin.trim()),
+        origin: allowedOrigins,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
