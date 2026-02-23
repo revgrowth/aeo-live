@@ -339,7 +339,7 @@ function RegisterForm() {
                     {/* Social Login */}
                     <div className="grid grid-cols-2 gap-3">
                         <a
-                            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/google`}
+                            href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/google`}
                             className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition-all"
                         >
                             <svg className="h-5 w-5" viewBox="0 0 24 24">
