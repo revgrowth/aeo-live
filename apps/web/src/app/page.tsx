@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import DashboardHeroPreview from '@/components/DashboardHeroPreview';
 import {
     ArrowRight, Target, Sparkles,
     TrendingUp, CheckCircle, Globe, Loader2, Crosshair,
@@ -180,17 +181,12 @@ export default function HomePage() {
                             ))}
                         </motion.div>
 
-                        {/* ═══ 3D TILTED DASHBOARD — PLACEHOLDER IMAGE ═══ */}
+                        {/* ═══ 3D TILTED DASHBOARD — LIVE UI ═══ */}
                         <motion.div variants={fadeUp} className="relative mx-auto mt-4 w-full max-w-5xl" style={{ perspective: '1000px' }}>
-                            <div className="rounded-xl border border-slate-200 bg-white shadow-2xl shadow-indigo-200/50 overflow-hidden" style={{ transform: 'rotateX(12deg)', transformOrigin: 'center bottom' }}>
+                            <div className="rounded-xl border border-slate-200 bg-white shadow-2xl shadow-indigo-200/50 overflow-hidden pointer-events-none" style={{ transform: 'rotateX(12deg)', transformOrigin: 'center bottom' }}>
                                 {/* Glass reflection */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-transparent pointer-events-none z-10" />
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                    src="https://placehold.co/1200x800/EEF2FF/4F46E5/png?text=Dashboard+Preview&font=inter"
-                                    alt="AEO.LIVE Dashboard Preview"
-                                    className="w-full h-auto block"
-                                />
+                                <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent pointer-events-none z-10" />
+                                <DashboardHeroPreview />
                             </div>
                         </motion.div>
                     </motion.div>
