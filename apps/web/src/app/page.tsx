@@ -104,6 +104,8 @@ export default function HomePage() {
 
             {/* ═══ HERO SECTION ═══ */}
             <section className="relative pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+                {/* Dot grid texture */}
+                <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
                 {/* Mesh gradient orbs */}
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-100/60 via-violet-50/40 to-transparent rounded-full blur-3xl pointer-events-none -translate-y-1/4 translate-x-1/4" />
                 <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-violet-100/40 to-transparent rounded-full blur-3xl pointer-events-none translate-y-1/4 -translate-x-1/4" />
@@ -117,8 +119,8 @@ export default function HomePage() {
                             <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">LIVE</span>
                         </motion.div>
 
-                        {/* Headline */}
-                        <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-gray-900 mb-6 leading-[0.95]">
+                        {/* Headline — massive 50% larger */}
+                        <motion.h1 variants={fadeUp} className="text-6xl sm:text-7xl md:text-8xl lg:text-[9rem] font-black tracking-tighter text-gray-900 mb-6 leading-[0.9]">
                             Outsmart Your{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">
                                 Competition
@@ -126,7 +128,7 @@ export default function HomePage() {
                         </motion.h1>
 
                         {/* Subheadline */}
-                        <motion.p variants={fadeUp} className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed">
+                        <motion.p variants={fadeUp} className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed">
                             AI-powered competitive intelligence that reveals{' '}
                             <span className="text-gray-900 font-semibold">exactly</span> how to outrank your rivals.
                             Get actionable insights in{' '}
@@ -190,9 +192,80 @@ export default function HomePage() {
                             ].map((stat) => (
                                 <div key={stat.label} className="bg-gray-50/80 rounded-2xl p-6 ring-1 ring-gray-100">
                                     <div className={`text-3xl md:text-4xl font-extrabold tabular-nums ${stat.color} mb-1`}>{stat.value}</div>
-                                    <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">{stat.label}</div>
+                                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.label}</div>
                                 </div>
                             ))}
+                        </motion.div>
+
+                        {/* ═══ 3D TILTED DASHBOARD HERO SHOT ═══ */}
+                        <motion.div variants={fadeUp} className="mt-20 max-w-5xl mx-auto" style={{ perspective: '1200px' }}>
+                            <div className="relative rounded-2xl border-2 border-gray-200/80 bg-white shadow-[0_20px_80px_-15px_rgba(0,0,0,0.2)] overflow-hidden" style={{ transform: 'rotateX(12deg) scale(0.92)', transformOrigin: 'center bottom' }}>
+                                {/* Glass reflection overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none z-10" />
+                                {/* Mock dashboard UI */}
+                                <div className="p-6 sm:p-8">
+                                    {/* Dashboard header bar */}
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-3 h-3 rounded-full bg-red-400" />
+                                            <div className="w-3 h-3 rounded-full bg-amber-400" />
+                                            <div className="w-3 h-3 rounded-full bg-emerald-400" />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-6 w-40 bg-gray-100 rounded-md" />
+                                            <div className="h-6 w-6 bg-gray-100 rounded-md" />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-8 w-20 bg-blue-500 rounded-lg" />
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500" />
+                                        </div>
+                                    </div>
+                                    {/* Two-column mock layout */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {/* Left - Score area */}
+                                        <div className="col-span-1 space-y-4">
+                                            <div className="bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
+                                                <div className="text-xs text-gray-400 mb-2 font-semibold">YOUR SCORE</div>
+                                                <div className="text-5xl font-black text-blue-600 mb-1">72</div>
+                                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className="h-full w-[72%] bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" /></div>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
+                                                <div className="text-xs text-gray-400 mb-2 font-semibold">COMPETITOR</div>
+                                                <div className="text-5xl font-black text-orange-500 mb-1">84</div>
+                                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className="h-full w-[84%] bg-gradient-to-r from-orange-400 to-orange-500 rounded-full" /></div>
+                                            </div>
+                                        </div>
+                                        {/* Right - Category bars */}
+                                        <div className="col-span-2 bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
+                                            <div className="text-xs text-gray-400 mb-4 font-semibold">CATEGORY BREAKDOWN</div>
+                                            <div className="space-y-3">
+                                                {[
+                                                    { label: 'Technical SEO', you: 82, comp: 78, color: 'bg-blue-500' },
+                                                    { label: 'Content Quality', you: 65, comp: 88, color: 'bg-blue-500' },
+                                                    { label: 'AEO Readiness', you: 71, comp: 85, color: 'bg-blue-500' },
+                                                    { label: 'Brand Voice', you: 77, comp: 69, color: 'bg-blue-500' },
+                                                    { label: 'UX & Design', you: 80, comp: 91, color: 'bg-blue-500' },
+                                                    { label: 'Internal Links', you: 58, comp: 73, color: 'bg-blue-500' },
+                                                ].map((cat) => (
+                                                    <div key={cat.label}>
+                                                        <div className="flex items-center justify-between text-xs mb-1">
+                                                            <span className="text-gray-600 font-medium">{cat.label}</span>
+                                                            <div className="flex gap-3 text-[10px] font-bold">
+                                                                <span className="text-blue-600">{cat.you}</span>
+                                                                <span className="text-orange-500">{cat.comp}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="relative h-2 bg-gray-200 rounded-full">
+                                                            <div className="absolute top-0 left-0 h-full bg-blue-500/70 rounded-full" style={{ width: `${cat.you}%` }} />
+                                                            <div className="absolute top-0 left-0 h-full bg-orange-400/50 rounded-full" style={{ width: `${cat.comp}%` }} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     </motion.div>
                 </div>
@@ -210,13 +283,13 @@ export default function HomePage() {
                             Toolkits That Drive{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-blue-600">Real Results</span>
                         </motion.h2>
-                        <motion.p variants={fadeUp} className="text-lg text-gray-500 max-w-2xl mx-auto">
+                        <motion.p variants={fadeUp} className="text-lg text-gray-600 max-w-2xl mx-auto">
                             Five powerful modules working together to transform your competitive position
                         </motion.p>
                     </motion.div>
 
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {/* Featured card */}
+                        {/* Featured card — Revenue Analysis with mini bar chart */}
                         <motion.div variants={fadeUp} className="lg:col-span-2 bg-white rounded-2xl p-8 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
                             <div className="flex items-start justify-between mb-5">
                                 <div>
@@ -224,9 +297,22 @@ export default function HomePage() {
                                         <TrendingUp className="w-7 h-7 text-white" />
                                     </div>
                                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Revenue Analysis</h3>
-                                    <p className="text-gray-500 max-w-md">Calculate exactly how much you&apos;re losing to competitors and where to recover it.</p>
+                                    <p className="text-gray-600 max-w-md">Calculate exactly how much you&apos;re losing to competitors and where to recover it.</p>
                                 </div>
                                 <span className="px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold uppercase tracking-wide ring-1 ring-violet-100">Popular</span>
+                            </div>
+                            {/* Micro-UI: Revenue bar chart */}
+                            <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100 mb-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-gray-500">Monthly Lost Revenue</span>
+                                    <span className="text-xs font-bold text-red-500">-$24.8k/mo</span>
+                                </div>
+                                <div className="flex items-end gap-1.5 h-16">
+                                    {[35, 42, 38, 55, 48, 62, 58, 72, 68, 85, 78, 92].map((h, i) => (
+                                        <div key={i} className="flex-1 rounded-t-sm transition-all duration-500" style={{ height: `${h}%`, background: i >= 8 ? 'linear-gradient(to top, #8b5cf6, #6366f1)' : 'linear-gradient(to top, #e2e8f0, #cbd5e1)' }} />
+                                    ))}
+                                </div>
+                                <div className="flex justify-between mt-2 text-[10px] text-gray-400"><span>Jan</span><span>Jun</span><span>Dec</span></div>
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {['Lost Revenue Calc', 'Traffic Recovery', 'ROI Projections'].map((item) => (
@@ -235,23 +321,102 @@ export default function HomePage() {
                             </div>
                         </motion.div>
 
-                        {[
-                            { icon: Eye, title: 'AI Visibility', desc: 'See if ChatGPT, Perplexity, and Claude can find you.', accent: 'from-cyan-500 to-blue-600', shadow: 'shadow-cyan-500/20', tag: 'Track 6 AI Engines', tagColor: 'text-cyan-600' },
-                            { icon: Target, title: 'Competitive Radar', desc: 'Head-to-head comparisons across 7 critical categories.', accent: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-500/20', tag: 'Real-time Analysis', tagColor: 'text-amber-600' },
-                            { icon: BarChart3, title: 'Industry Benchmarks', desc: 'Know where you stand against industry leaders.', accent: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20', tag: '10M+ Data Points', tagColor: 'text-emerald-600' },
-                            { icon: Zap, title: 'Quick Wins', desc: 'Prioritized action plan with immediate impact items.', accent: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20', tag: '30/60/90 Day Plan', tagColor: 'text-rose-600' },
-                        ].map((card) => (
-                            <motion.div key={card.title} variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.accent} flex items-center justify-center mb-4 shadow-lg ${card.shadow} group-hover:scale-110 transition-transform duration-300`}>
-                                    <card.icon className="w-6 h-6 text-white" />
+                        {/* AI Visibility — Chat bubble micro-UI */}
+                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Eye className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">AI Visibility</h3>
+                            <p className="text-gray-600 text-sm mb-4">See if ChatGPT, Perplexity, and Claude can find you.</p>
+                            {/* Micro-UI: Chat bubble */}
+                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-2">
+                                <div className="flex items-start gap-2">
+                                    <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-white text-[8px] font-bold">AI</span></div>
+                                    <div className="bg-white rounded-lg rounded-tl-none px-3 py-2 text-[11px] text-gray-600 ring-1 ring-gray-100">&quot;Based on my analysis, I&apos;d recommend <span className="font-bold text-blue-600">your brand</span> for...&quot;</div>
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">{card.title}</h3>
-                                <p className="text-gray-500 text-sm mb-4">{card.desc}</p>
-                                <div className={`flex items-center gap-1 text-sm font-semibold ${card.tagColor}`}>
-                                    {card.tag} <ArrowRight className="w-3.5 h-3.5" />
+                                <div className="flex items-center gap-2 pl-7">
+                                    <div className="flex -space-x-1">
+                                        {['bg-emerald-500', 'bg-blue-500', 'bg-violet-500'].map((c, i) => (
+                                            <div key={i} className={`w-4 h-4 rounded-full ${c} ring-2 ring-white`} />
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] text-gray-400">3 of 6 AI engines cite you</span>
                                 </div>
-                            </motion.div>
-                        ))}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-cyan-600 mt-3">Track 6 AI Engines <ArrowRight className="w-3.5 h-3.5" /></div>
+                        </motion.div>
+
+                        {/* Competitive Radar — SVG radar micro-UI */}
+                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Target className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Competitive Radar</h3>
+                            <p className="text-gray-600 text-sm mb-4">Head-to-head comparisons across 7 critical categories.</p>
+                            {/* Micro-UI: Radar chart */}
+                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 flex items-center justify-center">
+                                <svg viewBox="0 0 120 120" className="w-full h-24">
+                                    {/* Grid rings */}
+                                    {[20, 35, 50].map((r) => (<circle key={r} cx="60" cy="60" r={r} fill="none" stroke="#e5e7eb" strokeWidth="0.5" />))}
+                                    {/* You - blue polygon */}
+                                    <polygon points="60,20 95,40 90,75 60,95 30,75 25,40" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" />
+                                    {/* Competitor - orange polygon */}
+                                    <polygon points="60,30 85,35 98,65 60,85 35,70 20,45" fill="rgba(249,115,22,0.1)" stroke="#f97316" strokeWidth="1" strokeDasharray="3,2" />
+                                </svg>
+                            </div>
+                            <div className="flex items-center justify-center gap-4 mt-2">
+                                <span className="flex items-center gap-1 text-[10px] font-semibold"><span className="w-2 h-2 rounded-full bg-blue-500" /> You</span>
+                                <span className="flex items-center gap-1 text-[10px] font-semibold"><span className="w-2 h-2 rounded-full bg-orange-500" /> Competitor</span>
+                            </div>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-amber-600 mt-3">Real-time Analysis <ArrowRight className="w-3.5 h-3.5" /></div>
+                        </motion.div>
+
+                        {/* Industry Benchmarks — mini bars */}
+                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <BarChart3 className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Industry Benchmarks</h3>
+                            <p className="text-gray-600 text-sm mb-4">Know where you stand against industry leaders.</p>
+                            {/* Micro-UI: Benchmark bars */}
+                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-2">
+                                {[
+                                    { label: 'You', value: 72, color: 'bg-emerald-500' },
+                                    { label: 'Industry Avg', value: 58, color: 'bg-gray-300' },
+                                    { label: 'Top 10%', value: 91, color: 'bg-teal-400' },
+                                ].map((b) => (
+                                    <div key={b.label}>
+                                        <div className="flex justify-between text-[10px] mb-0.5"><span className="text-gray-600 font-medium">{b.label}</span><span className="font-bold text-gray-800">{b.value}</span></div>
+                                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className={`h-full ${b.color} rounded-full`} style={{ width: `${b.value}%` }} /></div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-emerald-600 mt-3">10M+ Data Points <ArrowRight className="w-3.5 h-3.5" /></div>
+                        </motion.div>
+
+                        {/* Quick Wins — checklist micro-UI */}
+                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform duration-300">
+                                <Zap className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Wins</h3>
+                            <p className="text-gray-600 text-sm mb-4">Prioritized action plan with immediate impact items.</p>
+                            {/* Micro-UI: Prioritized checklist */}
+                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-1.5">
+                                {[
+                                    { text: 'Add structured data markup', impact: 'High', color: 'text-red-500 bg-red-50' },
+                                    { text: 'Fix mobile viewport issues', impact: 'High', color: 'text-red-500 bg-red-50' },
+                                    { text: 'Optimize meta descriptions', impact: 'Med', color: 'text-amber-600 bg-amber-50' },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-[11px]">
+                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                        <span className="text-gray-600 flex-1 truncate">{item.text}</span>
+                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${item.color}`}>{item.impact}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex items-center gap-1 text-sm font-semibold text-rose-600 mt-3">30/60/90 Day Plan <ArrowRight className="w-3.5 h-3.5" /></div>
+                        </motion.div>
                     </motion.div>
                 </div>
             </section>
