@@ -1,6 +1,8 @@
 import { AuthTokens, AuthUser, ApiResponse } from '@aeo-live/shared';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// Always use same-origin relative URLs on the client.
+// Requests to /api/v1/* are proxied to the backend by next.config.js rewrites.
+const API_URL = '';
 
 class ApiClient {
     private accessToken: string | null = null;

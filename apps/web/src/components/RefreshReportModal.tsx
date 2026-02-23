@@ -42,7 +42,7 @@ export function RefreshReportModal({
                 if (userId) params.set('userId', userId);
 
                 const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/analysis/${analysisId}/refresh/check?${params}`
+                    `/api/v1/analysis/${analysisId}/refresh/check?${params}`
                 );
 
                 if (!res.ok) throw new Error('Failed to check eligibility');
@@ -70,7 +70,7 @@ export function RefreshReportModal({
             if (userId) params.set('userId', userId);
 
             const res = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/analysis/${analysisId}/refresh?${params}`,
+                `/api/v1/analysis/${analysisId}/refresh?${params}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
