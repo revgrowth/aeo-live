@@ -1,21 +1,107 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Target, Mail, Lock, User, AlertCircle, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import {
+    Target, Mail, Lock, User, AlertCircle, Loader2,
+    ArrowRight, Sparkles, CheckCircle, Tag, XCircle,
+} from 'lucide-react';
 
-export default function RegisterPage() {
+// =============================================================================
+// CLAIM CODE VALIDATION SECTION
+// =============================================================================
+
+interface ClaimCodeState {
+    value: string;
+    isValidating: boolean;
+    isValid: boolean | null;
+    domain: string | null;
+    error: string | null;
+}
+
+function useClaimCodeValidation(initialCode: string) {
+    const [state, setState] = useState<ClaimCodeState>({
+        value: initialCode,
+        isValidating: false,
+        isValid: null,
+        domain: null,
+        error: null,
+    });
+
+    const validate = useCallback(async (code: string) => {
+        if (!code.trim()) {
+            setState((s) => ({ ...s, isValid: null, domain: null, error: null }));
+            return;
+        }
+
+        setState((s) => ({ ...s, isValidating: true, error: null }));
+
+        try {
+            const response = await api.validateClaimCode(code.trim());
+            if (response.success && response.data) {
+                setState((s) => ({
+                    ...s,
+                    isValidating: false,
+                    isValid: response.data!.valid,
+                    domain: response.data!.domain,
+                    error: response.data!.valid ? null : 'This code is no longer active',
+                }));
+            } else {
+                setState((s) => ({
+                    ...s,
+                    isValidating: false,
+                    isValid: false,
+                    domain: null,
+                    error: 'Invalid claim code',
+                }));
+            }
+        } catch {
+            setState((s) => ({
+                ...s,
+                isValidating: false,
+                isValid: false,
+                domain: null,
+                error: 'Could not validate code',
+            }));
+        }
+    }, []);
+
+    // Auto-validate initial code from URL
+    useEffect(() => {
+        if (initialCode) {
+            validate(initialCode);
+        }
+    }, [initialCode, validate]);
+
+    const setValue = (value: string) => {
+        setState((s) => ({ ...s, value, isValid: null, domain: null, error: null }));
+    };
+
+    return { ...state, setValue, validate };
+}
+
+// =============================================================================
+// REGISTRATION FORM COMPONENT (needs Suspense boundary for useSearchParams)
+// =============================================================================
+
+function RegisterForm() {
+    const searchParams = useSearchParams();
+    const codeFromUrl = searchParams.get('code') || '';
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showClaimCode, setShowClaimCode] = useState(!!codeFromUrl);
 
+    const claimCode = useClaimCodeValidation(codeFromUrl);
     const { register } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
@@ -37,10 +123,13 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            await register(email, password, name);
+            const code = claimCode.isValid ? claimCode.value.trim() : undefined;
+            await register(email, password, name, code);
             toast({
                 title: 'Account created!',
-                description: 'Welcome to AEO.LIVE. Check your email to verify your account.',
+                description: code
+                    ? `Welcome to AEO.LIVE. Your report for ${claimCode.domain} is being prepared.`
+                    : 'Welcome to AEO.LIVE. Check your email to verify your account.',
             });
             router.push('/dashboard');
         } catch (err) {
@@ -78,6 +167,58 @@ export default function RegisterPage() {
                             <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
                             <span className="text-sm text-red-700">{error}</span>
                         </div>
+                    )}
+
+                    {/* Claim Code Section */}
+                    {showClaimCode ? (
+                        <div className="mb-6 p-4 rounded-xl bg-sky-50 border border-sky-200">
+                            <label htmlFor="claimCode" className="block text-sm font-medium text-sky-700 mb-2">
+                                <Tag className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+                                Claim Code
+                            </label>
+                            <div className="relative">
+                                <input
+                                    id="claimCode"
+                                    type="text"
+                                    placeholder="e.g. HVAC-AUSTIN-001"
+                                    value={claimCode.value}
+                                    onChange={(e) => claimCode.setValue(e.target.value.toUpperCase())}
+                                    onBlur={() => claimCode.validate(claimCode.value)}
+                                    className="w-full px-4 py-3 rounded-lg bg-white border border-sky-300 text-slate-900 placeholder-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all font-mono text-sm tracking-wider uppercase"
+                                />
+                                {/* Validation indicator */}
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                    {claimCode.isValidating && (
+                                        <Loader2 className="w-5 h-5 text-sky-500 animate-spin" />
+                                    )}
+                                    {!claimCode.isValidating && claimCode.isValid === true && (
+                                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                    )}
+                                    {!claimCode.isValidating && claimCode.isValid === false && (
+                                        <XCircle className="w-5 h-5 text-red-500" />
+                                    )}
+                                </div>
+                            </div>
+                            {/* Validation result */}
+                            {claimCode.isValid && claimCode.domain && (
+                                <p className="mt-2 text-sm text-emerald-700 flex items-center gap-1.5">
+                                    <CheckCircle className="w-4 h-4" />
+                                    Valid code for <strong>{claimCode.domain}</strong>
+                                </p>
+                            )}
+                            {claimCode.error && (
+                                <p className="mt-2 text-sm text-red-600">{claimCode.error}</p>
+                            )}
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => setShowClaimCode(true)}
+                            className="mb-6 text-sm text-sky-600 hover:text-sky-700 font-medium transition-colors flex items-center gap-1.5"
+                        >
+                            <Tag className="w-4 h-4" />
+                            Have a Claim Code?
+                        </button>
                     )}
 
                     {/* Form */}
@@ -254,5 +395,21 @@ export default function RegisterPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// =============================================================================
+// PAGE EXPORT (with Suspense boundary for useSearchParams)
+// =============================================================================
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-sky-500 animate-spin" />
+            </div>
+        }>
+            <RegisterForm />
+        </Suspense>
     );
 }

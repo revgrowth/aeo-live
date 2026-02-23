@@ -3,6 +3,7 @@ import {
     UnauthorizedException,
     ConflictException,
     BadRequestException,
+    Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -10,17 +11,21 @@ import * as argon2 from 'argon2';
 import { nanoid } from 'nanoid';
 import { PrismaService } from '@/common/database/prisma.service';
 import { UsersService } from '../users/users.service';
+import { ClaimCodesService } from '../claim-codes/claim-codes.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthTokens, AuthUser } from '@aeo-live/shared';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly usersService: UsersService
+        private readonly usersService: UsersService,
+        private readonly claimCodesService: ClaimCodesService,
     ) { }
 
     async register(dto: RegisterDto): Promise<{ user: AuthUser; tokens: AuthTokens }> {
@@ -64,6 +69,18 @@ export class AuthService {
 
         // Create verification token
         await this.createVerificationToken(user.id, 'EMAIL_VERIFICATION');
+
+        // Auto-redeem claim code if provided
+        if (dto.claimCode) {
+            try {
+                await this.claimCodesService.redeem(dto.claimCode, user.id);
+                this.logger.log(`Auto-redeemed claim code "${dto.claimCode}" for user ${user.id}`);
+            } catch (error) {
+                this.logger.warn(
+                    `Failed to redeem claim code "${dto.claimCode}" during registration: ${error.message}`,
+                );
+            }
+        }
 
         return {
             user: this.formatUser(user),

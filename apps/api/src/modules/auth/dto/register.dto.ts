@@ -18,4 +18,9 @@ export class RegisterDto {
     @IsOptional()
     @MaxLength(255)
     organizationName?: string;
+
+    @IsString()
+    @IsOptional()
+    @MaxLength(50)
+    claimCode?: string;
 }

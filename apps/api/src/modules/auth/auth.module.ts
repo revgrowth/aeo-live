@@ -9,6 +9,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { UsersModule } from '../users/users.module';
+import { ClaimCodesModule } from '../claim-codes/claim-codes.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { UsersModule } from '../users/users.module';
             }),
         }),
         UsersModule,
+        ClaimCodesModule,
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy, JwtRefreshStrategy, GoogleStrategy],

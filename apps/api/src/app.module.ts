@@ -12,6 +12,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { HealthModule } from './modules/health/health.module';
 import { AnalysisModule } from './modules/analysis/analysis.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ClaimCodesModule } from './modules/claim-codes/claim-codes.module';
 import { ErrorLoggingModule } from './common/logging/error-logging.module';
 import { DatabaseModule } from './common/database/database.module';
 import { EmailModule } from './common/email/email.module';
@@ -52,6 +53,7 @@ import { ErrorNotificationModule } from './common/errors/error-notification.modu
         HealthModule,
         AnalysisModule,
         AdminModule,
+        ClaimCodesModule,
         ErrorLoggingModule,
         EmailModule,
         ErrorNotificationModule,

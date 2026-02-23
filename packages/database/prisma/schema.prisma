@@ -62,6 +62,7 @@ model User {
   refreshTokens      RefreshToken[]
   verificationTokens VerificationToken[]
   leads              Lead[]
+  claimCodes         ClaimCode[]
 
   @@index([organizationId], name: "idx_users_org")
   @@map("users")
@@ -167,6 +168,7 @@ model Lead {
   
   // Relations
   analyses        AnalysisRun[]
+  claimCodes      ClaimCode[]
   user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   userId          String?  @map("user_id") @db.Uuid
 
@@ -478,6 +480,37 @@ model ApiKey {
 }
 
 // =============================================================================
+// CLAIM CODE ENTITIES
+// =============================================================================
+
+/// Claim codes for cold outreach — prospects redeem a code to unlock a pre-analyzed report
+model ClaimCode {
+  id              String          @id @default(uuid()) @db.Uuid
+  code            String          @unique @db.VarChar(50)
+  targetDomain    String          @map("target_domain") @db.VarChar(255)
+  status          ClaimCodeStatus @default(ACTIVE)
+
+  // Optional: Link to pre-existing Lead if generated from one
+  leadId          String?         @map("lead_id") @db.Uuid
+  lead            Lead?           @relation(fields: [leadId], references: [id])
+
+  // Track redemption
+  redeemedByUserId String?        @map("redeemed_by_user_id") @db.Uuid
+  redeemedByUser   User?          @relation(fields: [redeemedByUserId], references: [id])
+  redeemedAt       DateTime?      @map("redeemed_at")
+
+  // Store pre-calc data to speed up first load
+  metadata        Json            @default("{}")
+
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  @@index([code], name: "idx_claim_codes_code")
+  @@index([status], name: "idx_claim_codes_status")
+  @@map("claim_codes")
+}
+
+// =============================================================================
 // ENUMS
 // =============================================================================
 
@@ -597,4 +630,10 @@ enum ErrorStatus {
   IN_PROGRESS   // Being worked on
   RESOLVED      // Fixed
   IGNORED       // Won't fix
+}
+
+enum ClaimCodeStatus {
+  ACTIVE
+  REDEEMED
+  EXPIRED
 }

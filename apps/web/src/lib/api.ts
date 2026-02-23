@@ -119,7 +119,7 @@ class ApiClient {
     }
 
     // Auth endpoints
-    async register(data: { email: string; password: string; name?: string }) {
+    async register(data: { email: string; password: string; name?: string; claimCode?: string }) {
         return this.request<{ user: AuthUser; tokens: AuthTokens }>('/auth/register', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -167,6 +167,20 @@ class ApiClient {
         // Clear tokens after account deletion
         this.setTokens(null);
         return result;
+    }
+
+    // Claim Codes
+    async validateClaimCode(code: string) {
+        return this.request<{ valid: boolean; domain: string | null; status?: string }>(
+            `/claim-codes/${encodeURIComponent(code)}/validate`,
+        );
+    }
+
+    async redeemClaimCode(code: string) {
+        return this.request<{ projectId: string; domain: string }>('/claim-codes/redeem', {
+            method: 'POST',
+            body: JSON.stringify({ code }),
+        });
     }
 
     // Projects
