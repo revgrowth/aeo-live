@@ -75,7 +75,7 @@ export default function HomePage() {
     const scoreInView = useInView(scoreRef, { once: true, margin: '-100px' });
 
     return (
-        <div className="min-h-screen bg-white text-gray-900">
+        <div className="min-h-screen bg-slate-50 text-gray-900">
             {/* ═══ NAVIGATION ═══ */}
             <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -103,58 +103,55 @@ export default function HomePage() {
             </nav>
 
             {/* ═══ HERO SECTION ═══ */}
-            <section className="relative pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+            <section className="relative pt-24 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100 via-white to-white">
                 {/* Dot grid texture */}
-                <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-                {/* Mesh gradient orbs */}
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-100/60 via-violet-50/40 to-transparent rounded-full blur-3xl pointer-events-none -translate-y-1/4 translate-x-1/4" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-violet-100/40 to-transparent rounded-full blur-3xl pointer-events-none translate-y-1/4 -translate-x-1/4" />
+                <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.05) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
                 <div className="relative z-10 max-w-5xl mx-auto text-center">
                     <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
                         {/* Badge */}
-                        <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-semibold mb-8 ring-1 ring-blue-100">
-                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-semibold mb-8 ring-1 ring-indigo-200">
+                            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                             Competitive Intelligence Platform
-                            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">LIVE</span>
+                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold">LIVE</span>
                         </motion.div>
 
-                        {/* Headline — massive 50% larger */}
-                        <motion.h1 variants={fadeUp} className="text-6xl sm:text-7xl md:text-8xl lg:text-[9rem] font-black tracking-tighter text-gray-900 mb-6 leading-[0.9]">
+                        {/* Headline — HUGE */}
+                        <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[0.95]">
                             Outsmart Your{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
                                 Competition
                             </span>
                         </motion.h1>
 
                         {/* Subheadline */}
-                        <motion.p variants={fadeUp} className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-12 leading-relaxed">
+                        <motion.p variants={fadeUp} className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto mb-12 leading-relaxed">
                             AI-powered competitive intelligence that reveals{' '}
-                            <span className="text-gray-900 font-semibold">exactly</span> how to outrank your rivals.
+                            <span className="text-slate-900 font-semibold">exactly</span> how to outrank your rivals.
                             Get actionable insights in{' '}
-                            <span className="inline-flex items-center gap-1 text-blue-600 font-bold">60 seconds <Zap className="w-4 h-4" /></span>
+                            <span className="inline-flex items-center gap-1 text-indigo-600 font-bold">60 seconds <Zap className="w-4 h-4" /></span>
                         </motion.p>
 
-                        {/* URL Input — Clean glass panel */}
+                        {/* URL Input */}
                         <motion.div variants={fadeUp}>
                             <form onSubmit={handleUrlSubmit} className="max-w-2xl mx-auto mb-8">
-                                <div className="bg-white rounded-2xl shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_20px_50px_-12px_rgba(0,0,0,0.12)] ring-1 ring-gray-900/5 p-2">
+                                <div className="bg-white rounded-2xl shadow-xl shadow-indigo-200/40 ring-1 ring-slate-200 p-2">
                                     <div className="flex flex-col sm:flex-row gap-2">
                                         <div className="flex-1 flex items-center gap-3 px-4 py-1">
-                                            <Globe className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                            <Globe className="w-5 h-5 text-slate-400 flex-shrink-0" />
                                             <Input
                                                 type="text"
                                                 placeholder="Enter your website URL..."
                                                 value={url}
                                                 onChange={(e) => setUrl(e.target.value)}
-                                                className="border-0 bg-transparent focus-visible:ring-0 text-base placeholder:text-gray-400 text-gray-900 h-12 font-medium"
+                                                className="border-0 bg-transparent focus-visible:ring-0 text-base placeholder:text-slate-400 text-slate-900 h-12 font-medium"
                                                 disabled={isAnalyzing}
                                             />
                                         </div>
                                         <Button
                                             type="submit"
                                             size="lg"
-                                            className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 px-8 h-12 rounded-xl font-bold text-white shadow-lg shadow-blue-600/25 hover:shadow-xl transition-all"
+                                            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 px-8 h-12 rounded-xl font-bold text-white shadow-lg shadow-indigo-600/25 hover:shadow-xl transition-all"
                                             disabled={isAnalyzing}
                                         >
                                             {isAnalyzing ? (
@@ -176,95 +173,24 @@ export default function HomePage() {
                                 { icon: Zap, text: '60-second results' },
                                 { icon: Shield, text: 'Enterprise-grade security' },
                             ].map((item) => (
-                                <span key={item.text} className="flex items-center gap-2 text-sm text-gray-400">
+                                <span key={item.text} className="flex items-center gap-2 text-sm text-slate-500">
                                     <item.icon className="w-4 h-4 text-emerald-500" />
                                     {item.text}
                                 </span>
                             ))}
                         </motion.div>
 
-                        {/* Hero stats — big mono numbers */}
-                        <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto">
-                            {[
-                                { value: '10M+', label: 'Keywords Analyzed', color: 'text-blue-600' },
-                                { value: '47%', label: 'Avg Visibility Gain', color: 'text-emerald-600' },
-                                { value: '<60s', label: 'To Intelligence', color: 'text-violet-600' },
-                            ].map((stat) => (
-                                <div key={stat.label} className="bg-gray-50/80 rounded-2xl p-6 ring-1 ring-gray-100">
-                                    <div className={`text-3xl md:text-4xl font-extrabold tabular-nums ${stat.color} mb-1`}>{stat.value}</div>
-                                    <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.label}</div>
-                                </div>
-                            ))}
-                        </motion.div>
-
-                        {/* ═══ 3D TILTED DASHBOARD HERO SHOT ═══ */}
-                        <motion.div variants={fadeUp} className="mt-20 max-w-5xl mx-auto" style={{ perspective: '1200px' }}>
-                            <div className="relative rounded-2xl border-2 border-gray-200/80 bg-white shadow-[0_20px_80px_-15px_rgba(0,0,0,0.2)] overflow-hidden" style={{ transform: 'rotateX(12deg) scale(0.92)', transformOrigin: 'center bottom' }}>
-                                {/* Glass reflection overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-transparent pointer-events-none z-10" />
-                                {/* Mock dashboard UI */}
-                                <div className="p-6 sm:p-8">
-                                    {/* Dashboard header bar */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-3 h-3 rounded-full bg-red-400" />
-                                            <div className="w-3 h-3 rounded-full bg-amber-400" />
-                                            <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-6 w-40 bg-gray-100 rounded-md" />
-                                            <div className="h-6 w-6 bg-gray-100 rounded-md" />
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-8 w-20 bg-blue-500 rounded-lg" />
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500" />
-                                        </div>
-                                    </div>
-                                    {/* Two-column mock layout */}
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {/* Left - Score area */}
-                                        <div className="col-span-1 space-y-4">
-                                            <div className="bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
-                                                <div className="text-xs text-gray-400 mb-2 font-semibold">YOUR SCORE</div>
-                                                <div className="text-5xl font-black text-blue-600 mb-1">72</div>
-                                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className="h-full w-[72%] bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" /></div>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
-                                                <div className="text-xs text-gray-400 mb-2 font-semibold">COMPETITOR</div>
-                                                <div className="text-5xl font-black text-orange-500 mb-1">84</div>
-                                                <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className="h-full w-[84%] bg-gradient-to-r from-orange-400 to-orange-500 rounded-full" /></div>
-                                            </div>
-                                        </div>
-                                        {/* Right - Category bars */}
-                                        <div className="col-span-2 bg-gray-50 rounded-xl p-5 ring-1 ring-gray-100">
-                                            <div className="text-xs text-gray-400 mb-4 font-semibold">CATEGORY BREAKDOWN</div>
-                                            <div className="space-y-3">
-                                                {[
-                                                    { label: 'Technical SEO', you: 82, comp: 78, color: 'bg-blue-500' },
-                                                    { label: 'Content Quality', you: 65, comp: 88, color: 'bg-blue-500' },
-                                                    { label: 'AEO Readiness', you: 71, comp: 85, color: 'bg-blue-500' },
-                                                    { label: 'Brand Voice', you: 77, comp: 69, color: 'bg-blue-500' },
-                                                    { label: 'UX & Design', you: 80, comp: 91, color: 'bg-blue-500' },
-                                                    { label: 'Internal Links', you: 58, comp: 73, color: 'bg-blue-500' },
-                                                ].map((cat) => (
-                                                    <div key={cat.label}>
-                                                        <div className="flex items-center justify-between text-xs mb-1">
-                                                            <span className="text-gray-600 font-medium">{cat.label}</span>
-                                                            <div className="flex gap-3 text-[10px] font-bold">
-                                                                <span className="text-blue-600">{cat.you}</span>
-                                                                <span className="text-orange-500">{cat.comp}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="relative h-2 bg-gray-200 rounded-full">
-                                                            <div className="absolute top-0 left-0 h-full bg-blue-500/70 rounded-full" style={{ width: `${cat.you}%` }} />
-                                                            <div className="absolute top-0 left-0 h-full bg-orange-400/50 rounded-full" style={{ width: `${cat.comp}%` }} />
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        {/* ═══ 3D TILTED DASHBOARD — PLACEHOLDER IMAGE ═══ */}
+                        <motion.div variants={fadeUp} className="relative mx-auto mt-4 w-full max-w-5xl" style={{ perspective: '1000px' }}>
+                            <div className="rounded-xl border border-slate-200 bg-white shadow-2xl shadow-indigo-200/50 overflow-hidden" style={{ transform: 'rotateX(12deg)', transformOrigin: 'center bottom' }}>
+                                {/* Glass reflection */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-transparent pointer-events-none z-10" />
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    src="https://placehold.co/1200x800/EEF2FF/4F46E5/png?text=Dashboard+Preview&font=inter"
+                                    alt="AEO.LIVE Dashboard Preview"
+                                    className="w-full h-auto block"
+                                />
                             </div>
                         </motion.div>
                     </motion.div>
