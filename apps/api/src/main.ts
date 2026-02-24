@@ -1,4 +1,4 @@
-// AEO.LIVE API Server – Bootstrap (deploy trigger 2026-02-23)
+// AEO.LIVE API Server – Bootstrap (v2 deploy trigger 2026-02-23)
 // Load environment variables FIRST before any other imports
 import * as dotenv from 'dotenv';
 import * as path from 'path';
