@@ -52,16 +52,15 @@ export class AuthService {
             },
         });
 
-        // Create user — claim code registrations get MEMBER role (end-customer),
-        // normal self-signups get OWNER (they own the org they just created).
-        const userRole = dto.claimCode ? 'MEMBER' : 'OWNER';
+        // Create user — ALL registrations get USER role.
+        // ADMIN and SUPER_ADMIN are NEVER assigned via registration.
         const user = await this.prisma.user.create({
             data: {
                 email: dto.email.toLowerCase(),
                 passwordHash,
                 name: dto.name,
                 organizationId: organization.id,
-                role: userRole,
+                role: 'USER',
                 provider: 'email',
             },
         });
@@ -313,7 +312,7 @@ export class AuthService {
                     avatarUrl: profile.avatarUrl,
                     emailVerified: true, // OAuth emails are pre-verified
                     organizationId: organization.id,
-                    role: 'OWNER',
+                    role: 'USER',
                     provider: profile.provider,
                     providerId: profile.providerId,
                 },

@@ -49,7 +49,7 @@ model User {
   passwordHash   String?   @map("password_hash") @db.VarChar(255)
   name           String?   @db.VarChar(255)
   avatarUrl      String?    @map("avatar_url") @db.VarChar(500)
-  role           UserRole   @default(MEMBER)
+  role           UserRole   @default(USER)
   status         UserStatus @default(ACTIVE)
   provider       String?    @db.VarChar(50) // google, microsoft, email
   providerId     String?    @map("provider_id") @db.VarChar(255)
@@ -526,9 +526,11 @@ enum PlanType {
 
 enum UserRole {
   SUPER_ADMIN
-  OWNER
   ADMIN
-  MEMBER
+  USER
+  VIEWER
+  OWNER    // @deprecated — use USER instead. Kept for existing DB records.
+  MEMBER   // @deprecated — use USER instead. Kept for existing DB records.
 }
 
 enum UserStatus {

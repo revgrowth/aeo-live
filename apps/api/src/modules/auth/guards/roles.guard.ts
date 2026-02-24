@@ -13,7 +13,7 @@ export class RolesGuard implements CanActivate {
         ]);
 
         if (!requiredRoles || requiredRoles.length === 0) {
-            return true; // No roles required
+            return true; // No roles required — any authenticated user can access
         }
 
         const { user } = context.switchToHttp().getRequest();
@@ -22,23 +22,26 @@ export class RolesGuard implements CanActivate {
             return false;
         }
 
-        // Check if user has any of the required roles
-        const userRole = user.role?.toUpperCase() || '';
+        const userRole = (user.role || '').toUpperCase();
 
-        // Super admin bypass - check if email is in SUPER_ADMIN_EMAILS
-        const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
+        // SUPER_ADMIN always has access to everything
+        if (userRole === 'SUPER_ADMIN') {
+            return true;
+        }
+
+        // Fallback: check by SUPER_ADMIN_EMAILS env var
+        const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || '')
+            .split(',')
+            .map(e => e.trim().toLowerCase())
+            .filter(Boolean);
         if (superAdminEmails.includes(user.email?.toLowerCase())) {
             return true;
         }
 
-        // Check role match
-        return requiredRoles.some((role) => {
-            const upperRole = role.toUpperCase();
-            // OWNER and ADMIN both count as admin roles
-            if (upperRole === 'ADMIN' && (userRole === 'ADMIN' || userRole === 'OWNER')) {
-                return true;
-            }
-            return userRole === upperRole;
-        });
+        // Direct role match — no OWNER=ADMIN equivalence, no fuzzy matching.
+        // Roles are: SUPER_ADMIN, ADMIN, USER, VIEWER
+        // Legacy OWNER/MEMBER are treated as USER for guard purposes.
+        const effectiveRole = (userRole === 'OWNER' || userRole === 'MEMBER') ? 'USER' : userRole;
+        return requiredRoles.some(role => role.toUpperCase() === effectiveRole);
     }
 }
