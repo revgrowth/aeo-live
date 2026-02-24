@@ -229,7 +229,6 @@ const s = StyleSheet.create({
     catLockHint: {
         fontSize: 6,
         color: c.textMuted,
-        fontStyle: 'italic',
         width: 70,
         textAlign: 'right',
     },
@@ -249,7 +248,6 @@ const s = StyleSheet.create({
     aiText: {
         fontSize: 9,
         color: c.slate700,
-        fontStyle: 'italic',
         lineHeight: 1.5,
     },
     aiMore: {
