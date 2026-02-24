@@ -38,10 +38,15 @@ export class RolesGuard implements CanActivate {
             return true;
         }
 
-        // Direct role match — no OWNER=ADMIN equivalence, no fuzzy matching.
+        // Direct role match.
         // Roles are: SUPER_ADMIN, ADMIN, USER, VIEWER
-        // Legacy OWNER/MEMBER are treated as USER for guard purposes.
+        // Legacy OWNER/MEMBER are treated as USER for most purposes,
+        // but we also check the raw role so legacy OWNER accounts
+        // still pass guards that explicitly list OWNER during migration.
         const effectiveRole = (userRole === 'OWNER' || userRole === 'MEMBER') ? 'USER' : userRole;
-        return requiredRoles.some(role => role.toUpperCase() === effectiveRole);
+        return requiredRoles.some(role => {
+            const upper = role.toUpperCase();
+            return upper === effectiveRole || upper === userRole;
+        });
     }
 }

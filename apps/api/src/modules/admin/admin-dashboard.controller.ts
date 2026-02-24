@@ -20,7 +20,7 @@ import { PdfService } from '../analysis/pdf.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SUPER_ADMIN', 'ADMIN', 'OWNER') // Only super admins, admins and owners can access
+@Roles('SUPER_ADMIN', 'ADMIN')
 export class AdminDashboardController {
     constructor(
         private adminService: AdminDashboardService,
