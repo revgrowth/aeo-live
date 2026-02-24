@@ -15,6 +15,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators';
 import { AdminDashboardService } from './admin-dashboard.service';
 import { ClaimCodesService } from '../claim-codes/claim-codes.service';
+import { GenerateClaimCodeDto } from '../claim-codes/dto';
 import { PdfService } from '../analysis/pdf.service';
 
 @Controller('admin')
@@ -135,7 +136,7 @@ export class AdminDashboardController {
     @Post('reports/:analysisId/generate-claim')
     async generateClaimForReport(
         @Param('analysisId') analysisId: string,
-        @Body() body: { domain?: string },
+        @Body() body: GenerateClaimCodeDto,
         @Res() res: Response,
     ) {
         // Get analysis to extract domain

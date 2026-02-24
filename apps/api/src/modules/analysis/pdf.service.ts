@@ -169,7 +169,7 @@ const s = StyleSheet.create({
         alignItems: 'center',
         gap: 10,
     },
-    lockIcon: { fontSize: 14, width: 20, textAlign: 'center' },
+    lockIcon: { fontSize: 7, width: 48, textAlign: 'center', fontWeight: 'bold', color: c.slate400 },
     lockedTitle: { fontSize: 10, fontWeight: 'bold', color: c.slate500 },
     lockedDesc: { fontSize: 8, color: c.slate400, fontStyle: 'italic', marginTop: 2 },
 
@@ -411,21 +411,21 @@ function PageOne({ data, claimCode }: { data: SalesTeaserData; claimCode: string
 
         // — Locked sections —
         h(View, { style: s.lockedSection },
-            h(Text, { style: s.lockIcon }, '🔒'),
+            h(Text, { style: s.lockIcon }, '[LOCKED]'),
             h(View, { style: { flex: 1 } },
                 h(Text, { style: s.lockedTitle }, 'Detailed Category Deep-Dives'),
                 h(Text, { style: s.lockedDesc }, `${data.categories.length} detailed breakdowns with actionable insights — available in full report`),
             ),
         ),
         h(View, { style: s.lockedSection },
-            h(Text, { style: s.lockIcon }, '🔒'),
+            h(Text, { style: s.lockIcon }, '[LOCKED]'),
             h(View, { style: { flex: 1 } },
                 h(Text, { style: s.lockedTitle }, 'Revenue Impact Calculator'),
                 h(Text, { style: s.lockedDesc }, 'See the estimated revenue impact of improving your AI visibility'),
             ),
         ),
         h(View, { style: s.lockedSection },
-            h(Text, { style: s.lockIcon }, '🔒'),
+            h(Text, { style: s.lockIcon }, '[LOCKED]'),
             h(View, { style: { flex: 1 } },
                 h(Text, { style: s.lockedTitle }, 'Strategic Game Plan'),
                 h(Text, { style: s.lockedDesc }, 'Your prioritized action plan with specific next steps'),
@@ -458,14 +458,14 @@ function PageTwo({ claimCode }: { claimCode: string }) {
         h(View, { style: s.ctaOuter },
             h(View, { style: s.ctaCard },
 
-                h(Text, { style: s.ctaHeaderIcon }, '🔓'),
-                h(Text, { style: s.ctaTitle }, 'Unlock Your Complete Report'),
+                h(Text, { style: s.ctaHeaderIcon }, '>>'),
+                h(Text, { style: s.ctaTitle }, 'UNLOCK YOUR COMPLETE REPORT'),
                 h(Text, { style: s.ctaSub }, 'Your full competitive intelligence report includes:'),
 
                 // — Checklist —
                 ...checklist.map((item, i) =>
                     h(View, { key: String(i), style: s.checklistItem },
-                        h(Text, { style: s.checkMark }, '✓'),
+                        h(Text, { style: s.checkMark }, '*'),
                         h(Text, { style: s.checkText }, item),
                     ),
                 ),
