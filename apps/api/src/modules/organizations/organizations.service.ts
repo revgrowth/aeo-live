@@ -38,7 +38,7 @@ export class OrganizationsService {
             where: {
                 id: userId,
                 organizationId: id,
-                role: { in: ['OWNER', 'ADMIN'] },
+                role: { in: ['SUPER_ADMIN', 'ADMIN', 'OWNER'] },
             },
         });
 

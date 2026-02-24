@@ -186,8 +186,8 @@ export class AuthService {
                 where: { id: userId },
             });
 
-            // If user is the only member and owner of the organization, delete it too
-            if (user.organizationId && user.role === 'OWNER') {
+            // If user was the last member of the organization, delete it too
+            if (user.organizationId) {
                 const remainingMembers = await tx.user.count({
                     where: { organizationId: user.organizationId },
                 });
