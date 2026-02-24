@@ -490,6 +490,9 @@ model ClaimCode {
   targetDomain    String          @map("target_domain") @db.VarChar(255)
   status          ClaimCodeStatus @default(ACTIVE)
 
+  // Link to pre-generated analysis report
+  analysisRunId   String?         @map("analysis_run_id") @db.Uuid
+
   // Optional: Link to pre-existing Lead if generated from one
   leadId          String?         @map("lead_id") @db.Uuid
   lead            Lead?           @relation(fields: [leadId], references: [id])

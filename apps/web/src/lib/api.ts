@@ -1,4 +1,4 @@
-import { AuthTokens, AuthUser, ApiResponse } from '@aeo-live/shared';
+import { AuthTokens, AuthUser, ApiResponse, ReportData, ReportTeaser, ClaimCodeValidation } from '@aeo-live/shared';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -171,13 +171,19 @@ class ApiClient {
 
     // Claim Codes
     async validateClaimCode(code: string) {
-        return this.request<{ valid: boolean; domain: string | null; status?: string }>(
+        return this.request<ClaimCodeValidation>(
             `/claim-codes/${encodeURIComponent(code)}/validate`,
         );
     }
 
+    async getClaimTeaser(code: string) {
+        return this.request<ReportTeaser>(
+            `/claim-codes/${encodeURIComponent(code)}/teaser`,
+        );
+    }
+
     async redeemClaimCode(code: string) {
-        return this.request<{ projectId: string; domain: string }>('/claim-codes/redeem', {
+        return this.request<{ projectId: string; domain: string; analysisRunId?: string }>('/claim-codes/redeem', {
             method: 'POST',
             body: JSON.stringify({ code }),
         });
@@ -372,29 +378,7 @@ class ApiClient {
 
     // Get full report (after purchase)
     async getFullReport(analysisId: string) {
-        return this.request<{
-            analysisId: string;
-            yourUrl: string;
-            competitorUrl: string;
-            yourScore: number;
-            competitorScore: number;
-            categories: {
-                name: string;
-                icon: string;
-                yourScore: number;
-                competitorScore: number;
-                insights: string[];
-                recommendations: string[];
-            }[];
-            aiSummary: string;
-            recommendations: {
-                priority: 'high' | 'medium' | 'low';
-                title: string;
-                description: string;
-                impact: string;
-            }[];
-            createdAt: string;
-        }>(`/analysis/${analysisId}/full`);
+        return this.request<ReportData>(`/analysis/${analysisId}/full`);
     }
 
     // Create Stripe portal session for managing subscription

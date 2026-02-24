@@ -13,4 +13,8 @@ export class GenerateClaimCodeDto {
     @IsOptional()
     @MaxLength(50)
     customCode?: string;
+
+    @IsUUID()
+    @IsOptional()
+    analysisRunId?: string;
 }

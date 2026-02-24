@@ -8,10 +8,12 @@ import { PrismaService } from '../../common/database/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { ErrorNotificationService } from '../../common/errors/error-notification.service';
 import { EmailService } from '../../common/email/email.service';
+import { ClaimCodesService } from '../claim-codes/claim-codes.service';
+import { PdfService } from '../analysis/pdf.service';
 
 @Module({
     controllers: [AdminDashboardController, AdminErrorsController, UserManagementController, BootstrapController],
-    providers: [AdminDashboardService, PrismaService, ConfigService, ErrorNotificationService, EmailService],
+    providers: [AdminDashboardService, PrismaService, ConfigService, ErrorNotificationService, EmailService, ClaimCodesService, PdfService],
     exports: [AdminDashboardService],
 })
 export class AdminModule { }

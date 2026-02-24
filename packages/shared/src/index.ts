@@ -311,3 +311,13 @@ export type DeepPartial<T> = {
 };
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// Report types
+export type {
+    SubcategoryScore,
+    CategoryData,
+    RecommendationData,
+    ReportData,
+    ReportTeaser,
+    ClaimCodeValidation,
+} from './types/report.types';

@@ -125,11 +125,28 @@ function RegisterForm() {
         try {
             const code = claimCode.isValid ? claimCode.value.trim() : undefined;
             await register(email, password, name, code);
+
+            // If registered with a valid claim code, auto-redeem and redirect to report
+            if (code) {
+                try {
+                    const redeemResult = await api.redeemClaimCode(code);
+                    if (redeemResult.success && redeemResult.data?.analysisRunId) {
+                        toast({
+                            title: 'Report unlocked!',
+                            description: `Your full competitive analysis for ${claimCode.domain} is ready.`,
+                        });
+                        router.push(`/report/${redeemResult.data.analysisRunId}`);
+                        return;
+                    }
+                } catch {
+                    // If redeem fails, still continue to dashboard
+                    console.error('Claim code redemption failed, redirecting to dashboard');
+                }
+            }
+
             toast({
                 title: 'Account created!',
-                description: code
-                    ? `Welcome to AEO.LIVE. Your report for ${claimCode.domain} is being prepared.`
-                    : 'Welcome to AEO.LIVE. Check your email to verify your account.',
+                description: 'Welcome to AEO.LIVE. Check your email to verify your account.',
             });
             router.push('/dashboard');
         } catch (err) {

@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '@/common/database/prisma.service';
 import { GenerateClaimCodeDto } from './dto/generate-claim-code.dto';
 import { randomBytes } from 'crypto';
+import { ReportTeaser, ClaimCodeValidation } from '@aeo-live/shared';
 
 @Injectable()
 export class ClaimCodesService {
@@ -40,15 +41,33 @@ export class ClaimCodesService {
             }
         }
 
+        // Optionally verify analysis run exists
+        if (dto.analysisRunId) {
+            const run = await this.prisma.analysisRun.findUnique({
+                where: { id: dto.analysisRunId },
+            });
+            if (!run) {
+                throw new NotFoundException(`Analysis run ${dto.analysisRunId} not found`);
+            }
+        }
+
         const claimCode = await this.prisma.claimCode.create({
             data: {
                 code,
                 targetDomain: this.normalizeDomain(dto.domain),
                 leadId: dto.leadId || null,
+                analysisRunId: dto.analysisRunId || null,
             },
         });
 
-        this.logger.log(`Generated claim code "${code}" for domain ${claimCode.targetDomain}`);
+        this.logger.log(
+            `CLAIM_CODE_GENERATED: ${JSON.stringify({
+                code: claimCode.code,
+                domain: claimCode.targetDomain,
+                analysisRunId: dto.analysisRunId || null,
+                leadId: dto.leadId || null,
+            })}`,
+        );
 
         return { code: claimCode.code, id: claimCode.id };
     }
@@ -56,19 +75,97 @@ export class ClaimCodesService {
     /**
      * Validate a claim code — public, no auth required.
      */
-    async validate(code: string) {
+    async validate(code: string): Promise<ClaimCodeValidation> {
         const claimCode = await this.prisma.claimCode.findUnique({
             where: { code },
         });
 
         if (!claimCode) {
+            this.logger.warn(
+                `CLAIM_CODE_VALIDATION_FAILED: ${JSON.stringify({
+                    code,
+                    reason: 'not_found',
+                })}`,
+            );
             return { valid: false, domain: null };
         }
 
+        const valid = claimCode.status === 'ACTIVE';
+
+        this.logger.log(
+            `CLAIM_CODE_VALIDATED: ${JSON.stringify({
+                code,
+                valid,
+                domain: claimCode.targetDomain,
+                status: claimCode.status,
+            })}`,
+        );
+
         return {
-            valid: claimCode.status === 'ACTIVE',
+            valid,
             domain: claimCode.targetDomain,
             status: claimCode.status,
+        };
+    }
+
+    /**
+     * Get teaser preview for a claim code's linked analysis.
+     */
+    async getTeaser(code: string): Promise<ReportTeaser | null> {
+        const claimCode = await this.prisma.claimCode.findUnique({
+            where: { code },
+        });
+
+        if (!claimCode || claimCode.status !== 'ACTIVE') {
+            return null;
+        }
+
+        if (!claimCode.analysisRunId) {
+            return null;
+        }
+
+        const run = await this.prisma.analysisRun.findUnique({
+            where: { id: claimCode.analysisRunId },
+        });
+
+        if (!run || run.status !== 'complete') {
+            return null;
+        }
+
+        // Build teaser from analysis run data
+        let categories: ReportTeaser['categories'] = [];
+        if (run.categoryScores) {
+            try {
+                const parsed = typeof run.categoryScores === 'string'
+                    ? JSON.parse(run.categoryScores)
+                    : run.categoryScores;
+                categories = parsed.map((cat: any) => ({
+                    name: cat.name,
+                    icon: cat.icon || '📊',
+                    yourScore: Math.round(cat.score || 0),
+                    competitorScore: Math.round(cat.competitorScore || 0),
+                    status: cat.status || 'tied',
+                }));
+            } catch (e) {
+                this.logger.error(`Failed to parse categoryScores for teaser: ${e}`);
+            }
+        }
+
+        const yourScore = run.yourScore || 0;
+        const competitorScore = run.competitorScore || 0;
+        const scoreDiff = yourScore - competitorScore;
+
+        return {
+            analysisId: run.id,
+            yourUrl: run.businessUrl,
+            competitorUrl: run.competitorUrl,
+            yourScore,
+            competitorScore,
+            status: scoreDiff > 0 ? 'winning' : scoreDiff < 0 ? 'losing' : 'tied',
+            categories,
+            aiSummary: scoreDiff > 0
+                ? `Your site scores ${scoreDiff} points higher than your competitor. Create an account to see the full breakdown.`
+                : `Your competitor leads by ${Math.abs(scoreDiff)} points. Create an account to see actionable recommendations.`,
         };
     }
 
@@ -84,10 +181,24 @@ export class ClaimCodesService {
             });
 
             if (!claimCode) {
+                this.logger.error(
+                    `CLAIM_CODE_REDEEM_FAILED: ${JSON.stringify({
+                        code,
+                        userId,
+                        reason: 'not_found',
+                    })}`,
+                );
                 throw new NotFoundException(`Claim code "${code}" not found`);
             }
 
             if (claimCode.status !== 'ACTIVE') {
+                this.logger.error(
+                    `CLAIM_CODE_REDEEM_FAILED: ${JSON.stringify({
+                        code,
+                        userId,
+                        reason: `status_${claimCode.status.toLowerCase()}`,
+                    })}`,
+                );
                 throw new BadRequestException(
                     `Claim code "${code}" is ${claimCode.status.toLowerCase()}, not redeemable`,
                 );
@@ -127,12 +238,19 @@ export class ClaimCodesService {
             });
 
             this.logger.log(
-                `Redeemed claim code "${code}" → Project ${project.id} for user ${userId}`,
+                `CLAIM_CODE_REDEEMED: ${JSON.stringify({
+                    code,
+                    userId,
+                    projectId: project.id,
+                    domain: claimCode.targetDomain,
+                    analysisRunId: claimCode.analysisRunId,
+                })}`,
             );
 
             return {
                 projectId: project.id,
                 domain: claimCode.targetDomain,
+                analysisRunId: claimCode.analysisRunId,
             };
         });
     }

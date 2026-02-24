@@ -60,6 +60,15 @@ export class ClaimCodesController {
         };
     }
 
+    @Get('claim-codes/:code/teaser')
+    async getTeaser(@Param('code') code: string) {
+        const teaser = await this.claimCodesService.getTeaser(code);
+        return {
+            success: true,
+            data: teaser,
+        };
+    }
+
     // =========================================================================
     // AUTHENTICATED ENDPOINTS
     // =========================================================================

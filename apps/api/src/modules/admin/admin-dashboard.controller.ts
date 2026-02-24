@@ -1,8 +1,10 @@
 import {
     Controller,
     Get,
+    Post,
     Param,
     Query,
+    Body,
     UseGuards,
     Res,
     NotFoundException,
@@ -12,12 +14,18 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { ClaimCodesService } from '../claim-codes/claim-codes.service';
+import { PdfService } from '../analysis/pdf.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('SUPER_ADMIN', 'ADMIN', 'OWNER') // Only super admins, admins and owners can access
 export class AdminDashboardController {
-    constructor(private adminService: AdminDashboardService) { }
+    constructor(
+        private adminService: AdminDashboardService,
+        private claimCodesService: ClaimCodesService,
+        private pdfService: PdfService,
+    ) { }
 
     /**
      * Get dashboard statistics
@@ -119,5 +127,50 @@ export class AdminDashboardController {
             endDate: endDate ? new Date(endDate) : undefined,
         });
         return { success: true, data: result };
+    }
+
+    /**
+     * Generate a claim code linked to an analysis and optionally return teaser PDF.
+     */
+    @Post('reports/:analysisId/generate-claim')
+    @Roles('SUPER_ADMIN')
+    async generateClaimForReport(
+        @Param('analysisId') analysisId: string,
+        @Body() body: { domain?: string },
+        @Res() res: Response,
+    ) {
+        // Get analysis to extract domain
+        const analysis = await this.adminService.getAnalysisDetails(analysisId);
+        if (!analysis) {
+            throw new NotFoundException('Analysis not found');
+        }
+
+        const domain = body.domain || (analysis as any).businessUrl || 'unknown';
+
+        // Generate claim code linked to this analysis
+        const result = await this.claimCodesService.generate({
+            domain,
+            analysisRunId: analysisId,
+        });
+
+        // Generate teaser PDF
+        const teaser = await this.claimCodesService.getTeaser(result.code);
+        let pdfBuffer: Buffer | null = null;
+
+        if (teaser) {
+            pdfBuffer = await this.pdfService.generateTeaserPdf(teaser, result.code);
+        }
+
+        // Return JSON with optional PDF as base64
+        res.json({
+            success: true,
+            data: {
+                ...result,
+                domain,
+                analysisId,
+                teaser,
+                pdfBase64: pdfBuffer ? pdfBuffer.toString('base64') : null,
+            },
+        });
     }
 }

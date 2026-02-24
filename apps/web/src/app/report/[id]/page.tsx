@@ -29,58 +29,19 @@ import {
     Cpu, Search, Globe, Lightbulb, ArrowRight, Fingerprint,
     ShieldCheck, Menu, X, Calendar, DollarSign, Percent
 } from 'lucide-react';
+import type { ReportData, CategoryData, SubcategoryScore } from '@aeo-live/shared';
 
 // ============================================
-// TYPES
+// LOCAL TYPE EXTENSIONS (for this page's extra fields)
 // ============================================
 
-interface SubcategoryScore {
-    score: number;
-    weight: number;
-    evidence?: string[];
-    issues?: string[];
-}
-
-interface Category {
-    name: string;
-    icon: string;
-    yourScore: number;
-    competitorScore: number;
-    status: 'winning' | 'losing' | 'tied';
-    insights?: string[];
-    recommendations?: string[];
-    subcategories?: Record<string, SubcategoryScore>;
-    details?: Record<string, any>;
-}
-
-interface ReportData {
-    analysisId: string;
-    yourUrl: string;
-    competitorUrl: string;
-    yourScore: number;
-    competitorScore: number;
-    status: 'winning' | 'losing' | 'tied';
-    categories: Category[];
-    aiSummary: string;
-    recommendations?: Array<{
-        priority: 'high' | 'medium' | 'low';
-        title: string;
-        description: string;
-        impact: string;
-    }>;
-    createdAt: string;
+// Extend ReportData with intelligence report data specific to the page rendering
+interface PageReportData extends ReportData {
     intelligenceReport?: IntelligenceReportData;
-    businessProfile?: { name: string; industry: string; services: string[] };
-    v3Analysis?: {
-        your: any;
-        competitor: any;
-        yourPerformance?: any;
-        competitorPerformance?: any;
-        contentGap?: any;
-        backlinkComparison?: any;
-        serpComparison?: any;
-    };
 }
+
+// Type alias for backward compatibility
+type Category = CategoryData;
 
 // ============================================
 // NAVIGATION CATEGORIES
@@ -136,7 +97,7 @@ function ScoringSummary({
     competitorScore: number;
     yourDomain: string;
     competitorDomain: string;
-    createdAt: string;
+    createdAt: string | Date;
 }) {
     const scoreDiff = yourScore - competitorScore;
     const isWinning = scoreDiff > 0;
@@ -1031,7 +992,7 @@ function CategoryPerformanceContent({
 export default function ReportPage() {
     const params = useParams();
     const { user, isLoading: authLoading } = useAuth();
-    const [report, setReport] = useState<ReportData | null>(null);
+    const [report, setReport] = useState<PageReportData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeCategory, setActiveCategory] = useState<NavCategory>('summary');
@@ -1353,19 +1314,37 @@ export default function ReportPage() {
                     {/* Dynamic Content */}
                     {renderContent()}
 
-                    {/* Footer CTA */}
-                    <section className="text-center py-16 mt-12">
-                        <div className="relative inline-block">
-                            <div className="p-10 rounded-3xl bg-white border border-slate-200 shadow-lg">
-                                <Trophy className="w-14 h-14 text-amber-500 mx-auto mb-4" />
-                                <h3 className="text-2xl font-bold text-slate-900 mb-3">Ready to Dominate AI Search?</h3>
-                                <p className="text-slate-500 mb-6 max-w-md mx-auto">
-                                    Schedule a strategy call to implement these recommendations.
+                    {/* === PURCHASE BRIDGE CTA === */}
+                    <section className="py-12 mt-12">
+                        <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 md:p-12 text-center relative overflow-hidden">
+                            {/* Background decorations */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-sky-500/10 to-transparent rounded-full blur-3xl" />
+                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-emerald-500/10 to-transparent rounded-full blur-3xl" />
+
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center mx-auto mb-6 shadow-xl">
+                                    <Target className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-2xl md:text-3xl font-black text-white mb-3">
+                                    Run Analysis Against Another Competitor
+                                </h3>
+                                <p className="text-slate-400 mb-8 max-w-lg mx-auto">
+                                    See how you stack up against a different competitor. Get deep-dive category analysis,
+                                    AI-powered recommendations, and a strategic roadmap.
                                 </p>
-                                <Button className="bg-sky-600 hover:bg-sky-700 text-white font-bold px-10 py-6 text-lg h-auto shadow-lg">
-                                    Book Strategy Call
-                                    <ArrowRight className="w-5 h-5 ml-2" />
-                                </Button>
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <Link
+                                        href="/"
+                                        className="px-8 py-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-lg shadow-xl hover:shadow-2xl hover:from-sky-600 hover:to-indigo-700 transition-all flex items-center gap-3"
+                                    >
+                                        <Sparkles className="w-5 h-5" />
+                                        Start New Analysis
+                                        <ArrowRight className="w-5 h-5" />
+                                    </Link>
+                                </div>
+                                <p className="mt-4 text-sm text-slate-500">
+                                    Single report — $49 · Unlimited plan available
+                                </p>
                             </div>
                         </div>
                     </section>
