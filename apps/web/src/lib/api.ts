@@ -189,6 +189,14 @@ class ApiClient {
         });
     }
 
+    // Admin — Generate Claim Code
+    async generateClaimCode(analysisId: string, targetDomain: string) {
+        return this.request<{ code: string; domain: string; analysisId: string; pdfBase64?: string | null }>(`/admin/reports/${encodeURIComponent(analysisId)}/generate-claim`, {
+            method: 'POST',
+            body: JSON.stringify({ domain: targetDomain }),
+        });
+    }
+
     // Projects
     async getProjects() {
         return this.request<{ id: string; name: string; primaryDomain: string }[]>('/projects');

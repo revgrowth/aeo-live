@@ -6,8 +6,10 @@ import {
     Target, Download, CheckCircle, BarChart3, Sparkles, Zap,
     ArrowLeft, Flame, Rocket, Star, MessageSquare,
     Layout, Link2, Brain, FileText, Map,
-    DollarSign, Calculator, Users, Percent, RefreshCw
+    DollarSign, Calculator, Users, Percent, RefreshCw,
+    Ticket, Copy, Check, X, ExternalLink, Loader2
 } from 'lucide-react';
+import { api } from '@/lib/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IntelligenceReport } from '@/components/intelligence-report';
@@ -310,8 +312,85 @@ export default function AdminPreviewPage() {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>('summary');
     const [showRefreshModal, setShowRefreshModal] = useState(false);
+    const [isGeneratingClaim, setIsGeneratingClaim] = useState(false);
+    const [claimModal, setClaimModal] = useState<{ code: string; domain: string } | null>(null);
+    const [copiedField, setCopiedField] = useState<'code' | 'link' | null>(null);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+    const [lastClaimCode, setLastClaimCode] = useState<string | null>(null);
 
     useEffect(() => { if (analysisId) loadReport(); }, [analysisId]);
+
+    const handleGenerateClaim = async () => {
+        if (!report) return;
+        setIsGeneratingClaim(true);
+        try {
+            const domain = (() => {
+                try { return new URL(report.yourUrl).hostname.replace('www.', ''); }
+                catch { return report.yourUrl || 'unknown'; }
+            })();
+            const result = await api.generateClaimCode(analysisId, domain);
+            if (result.success && result.data) {
+                setClaimModal({ code: result.data.code, domain: result.data.domain });
+                setLastClaimCode(result.data.code);
+            } else {
+                alert('Failed to generate claim code. Please try again.');
+            }
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to generate claim code');
+        } finally {
+            setIsGeneratingClaim(false);
+        }
+    };
+
+    const copyToClipboard = async (text: string, field: 'code' | 'link') => {
+        await navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 2000);
+    };
+
+    const handleDownloadPdf = async () => {
+        setIsDownloadingPdf(true);
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+            let url = `${baseUrl}/admin/reports/${analysisId}/teaser-pdf`;
+            if (lastClaimCode) {
+                url += `?claimCode=${encodeURIComponent(lastClaimCode)}`;
+            }
+
+            // Get auth token from localStorage
+            const storedTokens = localStorage.getItem('auth_tokens');
+            const headers: Record<string, string> = {};
+            if (storedTokens) {
+                const { accessToken } = JSON.parse(storedTokens);
+                if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+            }
+
+            const resp = await fetch(url, { headers });
+            if (!resp.ok) {
+                const errText = await resp.text();
+                throw new Error(errText || `Failed (${resp.status})`);
+            }
+
+            const blob = await resp.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+
+            // Extract filename from Content-Disposition if available
+            const cd = resp.headers.get('Content-Disposition');
+            const match = cd?.match(/filename="?([^"]+)"?/);
+            a.download = match?.[1] || `AEO-Report-Preview.pdf`;
+
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+            alert(err instanceof Error ? err.message : 'Failed to download PDF');
+        } finally {
+            setIsDownloadingPdf(false);
+        }
+    };
 
     const loadReport = async () => {
         setIsLoading(true);
@@ -393,7 +472,25 @@ export default function AdminPreviewPage() {
             <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <Link href="/admin" className="flex items-center gap-2 text-slate-500 hover:text-slate-900"><ArrowLeft className="w-4 h-4" /> Back</Link>
-                    <div className="flex items-center gap-2"><button onClick={() => setShowRefreshModal(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Refresh</button><button className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 text-white text-sm font-medium flex items-center gap-2"><Download className="w-4 h-4" /> PDF</button></div>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleGenerateClaim}
+                            disabled={isGeneratingClaim}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-bold flex items-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {isGeneratingClaim ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ticket className="w-4 h-4" />}
+                            {isGeneratingClaim ? 'Generating…' : 'Claim Code'}
+                        </button>
+                        <button onClick={() => setShowRefreshModal(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-medium flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Refresh</button>
+                        <button
+                            onClick={handleDownloadPdf}
+                            disabled={isDownloadingPdf}
+                            className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-sm font-medium flex items-center gap-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {isDownloadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                            {isDownloadingPdf ? 'Generating…' : 'PDF'}
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -904,6 +1001,102 @@ export default function AdminPreviewPage() {
                         router.push(`/admin/preview/${newId}`);
                     }}
                 />
+            )}
+
+            {/* Claim Code Modal */}
+            {claimModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                        onClick={() => setClaimModal(null)}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative w-full max-w-md mx-4 rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Gradient top accent */}
+                        <div className="h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+
+                        {/* Close button */}
+                        <button
+                            onClick={() => setClaimModal(null)}
+                            className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                        >
+                            <X className="w-4 h-4 text-slate-500" />
+                        </button>
+
+                        <div className="p-8">
+                            {/* Header */}
+                            <div className="text-center mb-6">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/30">
+                                    <Ticket className="w-7 h-7 text-white" />
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900">Claim Code Generated</h2>
+                                <p className="text-sm text-slate-500 mt-1">for <span className="font-semibold text-slate-700">{claimModal.domain}</span></p>
+                            </div>
+
+                            {/* Claim Code Display */}
+                            <div className="mb-4">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Claim Code</label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 px-5 py-4 rounded-xl bg-slate-900 text-center">
+                                        <span className="text-2xl font-black tracking-[0.15em] text-amber-400 font-mono">
+                                            {claimModal.code}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => copyToClipboard(claimModal.code, 'code')}
+                                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${copiedField === 'code'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
+                                            }`}
+                                    >
+                                        {copiedField === 'code' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Claim URL */}
+                            <div className="mb-6">
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Claim URL</label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden">
+                                        <div className="flex items-center gap-2">
+                                            <ExternalLink className="w-4 h-4 text-slate-400 shrink-0" />
+                                            <span className="text-sm text-slate-600 truncate font-mono">
+                                                https://aeo.live/claim?code={claimModal.code}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => copyToClipboard(`https://aeo.live/claim?code=${claimModal.code}`, 'link')}
+                                        className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${copiedField === 'link'
+                                            ? 'bg-emerald-500 text-white'
+                                            : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
+                                            }`}
+                                    >
+                                        {copiedField === 'link' ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Sales Note */}
+                            <div className="px-4 py-3 rounded-xl bg-sky-50 border border-sky-200 mb-6">
+                                <p className="text-sm text-sky-800 leading-relaxed">
+                                    <strong>Share this link with your prospect.</strong> They&apos;ll see a preview of their report, register for an account, and instantly unlock the full analysis.
+                                </p>
+                            </div>
+
+                            {/* Close */}
+                            <button
+                                onClick={() => setClaimModal(null)}
+                                className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-colors"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

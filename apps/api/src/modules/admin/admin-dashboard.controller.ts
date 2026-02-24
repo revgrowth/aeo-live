@@ -173,4 +173,89 @@ export class AdminDashboardController {
             },
         });
     }
+
+    /**
+     * Download a 2-page sales teaser PDF for emailing to prospects.
+     * Auto-generates a claim code if one doesn't already exist for this analysis.
+     */
+    @Get('reports/:analysisId/teaser-pdf')
+    async downloadTeaserPdf(
+        @Param('analysisId') analysisId: string,
+        @Query('claimCode') existingCode: string | undefined,
+        @Res() res: Response,
+    ) {
+        const analysis = await this.adminService.getAnalysisDetails(analysisId);
+        if (!analysis) {
+            throw new NotFoundException('Analysis not found');
+        }
+
+        // Resolve or create a claim code
+        let claimCode = existingCode || '';
+        if (!claimCode) {
+            const domainStr = (analysis as any).businessUrl
+                ? (analysis as any).businessUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
+                : 'unknown';
+            const result = await this.claimCodesService.generate({
+                domain: domainStr,
+                analysisRunId: analysisId,
+            });
+            claimCode = result.code;
+        }
+
+        // Build enriched teaser data from the full analysis
+        const run = analysis as any;
+        let categories: import('../analysis/pdf.service').SalesTeaserCategory[] = [];
+
+        if (run.categoryScores) {
+            try {
+                const parsed = typeof run.categoryScores === 'string'
+                    ? JSON.parse(run.categoryScores)
+                    : run.categoryScores;
+                categories = parsed.map((cat: any) => ({
+                    name: cat.name || 'Unknown',
+                    icon: cat.icon || '📊',
+                    yourScore: Math.round(cat.score || cat.yourScore || 0),
+                    competitorScore: Math.round(cat.competitorScore || 0),
+                    status: cat.status || 'tied',
+                    insightCount: Array.isArray(cat.insights) ? cat.insights.length : 0,
+                    recommendationCount: Array.isArray(cat.recommendations) ? cat.recommendations.length : 0,
+                }));
+            } catch (e) {
+                // fall through with empty categories
+            }
+        }
+
+        const yourScore = run.yourScore || 0;
+        const competitorScore = run.competitorScore || 0;
+        const scoreDiff = yourScore - competitorScore;
+
+        const salesData: import('../analysis/pdf.service').SalesTeaserData = {
+            analysisId,
+            yourUrl: run.businessUrl || '',
+            competitorUrl: run.competitorUrl || '',
+            yourScore,
+            competitorScore,
+            status: scoreDiff > 0 ? 'winning' : scoreDiff < 0 ? 'losing' : 'tied',
+            categories,
+            aiSummary: run.aiSummary || `This analysis compares ${run.businessUrl} against ${run.competitorUrl} across key competitive dimensions.`,
+            businessName: run.businessProfile?.name,
+            createdAt: run.createdAt
+                ? new Date(run.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+                : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        };
+
+        const pdfBuffer = await this.pdfService.generateSalesPdf(salesData, claimCode);
+
+        const domainSlug = salesData.yourUrl
+            .replace(/^https?:\/\//, '')
+            .replace(/^www\./, '')
+            .replace(/[^a-zA-Z0-9.-]/g, '')
+            || 'report';
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="AEO-Report-Preview-${domainSlug}.pdf"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        res.send(pdfBuffer);
+    }
 }
+
