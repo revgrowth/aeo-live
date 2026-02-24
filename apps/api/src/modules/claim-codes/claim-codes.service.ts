@@ -73,6 +73,15 @@ export class ClaimCodesService {
     }
 
     /**
+     * Find an active claim code linked to a specific analysis run.
+     */
+    async findActiveByAnalysis(analysisRunId: string) {
+        return this.prisma.claimCode.findFirst({
+            where: { analysisRunId, status: 'ACTIVE' },
+        });
+    }
+
+    /**
      * Validate a claim code — public, no auth required.
      */
     async validate(code: string): Promise<ClaimCodeValidation> {

@@ -131,7 +131,7 @@ export class AdminDashboardController {
     }
 
     /**
-     * Generate a claim code linked to an analysis and optionally return teaser PDF.
+     * Generate a claim code linked to an analysis.
      */
     @Post('reports/:analysisId/generate-claim')
     async generateClaimForReport(
@@ -148,28 +148,32 @@ export class AdminDashboardController {
         const domain = body.domain || (analysis as any).businessUrl || 'unknown';
 
         // Generate claim code linked to this analysis
-        const result = await this.claimCodesService.generate({
-            domain,
-            analysisRunId: analysisId,
-        });
-
-        // Generate teaser PDF
-        const teaser = await this.claimCodesService.getTeaser(result.code);
-        let pdfBuffer: Buffer | null = null;
-
-        if (teaser) {
-            pdfBuffer = await this.pdfService.generateTeaserPdf(teaser, result.code);
+        let result: { code: string; id: string };
+        try {
+            result = await this.claimCodesService.generate({
+                domain,
+                analysisRunId: analysisId,
+            });
+        } catch (err: any) {
+            // If code already exists for this analysis, look it up
+            if (err?.status === 409 || err?.message?.includes('already exists')) {
+                const existing = await this.claimCodesService.findActiveByAnalysis(analysisId);
+                if (existing) {
+                    result = { code: existing.code, id: existing.id };
+                } else {
+                    throw err;
+                }
+            } else {
+                throw err;
+            }
         }
 
-        // Return JSON with optional PDF as base64
         res.json({
             success: true,
             data: {
                 ...result,
                 domain,
                 analysisId,
-                teaser,
-                pdfBase64: pdfBuffer ? pdfBuffer.toString('base64') : null,
             },
         });
     }
@@ -195,11 +199,25 @@ export class AdminDashboardController {
             const domainStr = (analysis as any).businessUrl
                 ? (analysis as any).businessUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '')
                 : 'unknown';
-            const result = await this.claimCodesService.generate({
-                domain: domainStr,
-                analysisRunId: analysisId,
-            });
-            claimCode = result.code;
+            try {
+                const result = await this.claimCodesService.generate({
+                    domain: domainStr,
+                    analysisRunId: analysisId,
+                });
+                claimCode = result.code;
+            } catch (err: any) {
+                // If code already exists for this analysis, look it up
+                if (err?.status === 409 || err?.message?.includes('already exists')) {
+                    const existing = await this.claimCodesService.findActiveByAnalysis(analysisId);
+                    if (existing) {
+                        claimCode = existing.code;
+                    } else {
+                        claimCode = 'PREVIEW';
+                    }
+                } else {
+                    claimCode = 'PREVIEW';
+                }
+            }
         }
 
         // Build enriched teaser data from the full analysis
@@ -213,7 +231,7 @@ export class AdminDashboardController {
                     : run.categoryScores;
                 categories = parsed.map((cat: any) => ({
                     name: cat.name || 'Unknown',
-                    icon: cat.icon || '📊',
+                    icon: '',
                     yourScore: Math.round(cat.score || cat.yourScore || 0),
                     competitorScore: Math.round(cat.competitorScore || 0),
                     status: cat.status || 'tied',
