@@ -121,9 +121,9 @@ export interface ScoreBreakdown {
 
 export const UserRole = {
     SUPER_ADMIN: 'SUPER_ADMIN',
-    OWNER: 'OWNER',
     ADMIN: 'ADMIN',
-    MEMBER: 'MEMBER',
+    USER: 'USER',
+    VIEWER: 'VIEWER',
 } as const;
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 

@@ -244,9 +244,10 @@ export interface SubScores {
 // -----------------------------------------------------------------------------
 
 export enum UserRole {
-    OWNER = 'OWNER',
+    SUPER_ADMIN = 'SUPER_ADMIN',
     ADMIN = 'ADMIN',
-    MEMBER = 'MEMBER',
+    USER = 'USER',
+    VIEWER = 'VIEWER',
 }
 
 export interface AuthTokens {
