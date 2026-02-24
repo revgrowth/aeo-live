@@ -247,51 +247,61 @@ export class ClaimCodesService {
                 },
             });
 
-            // 5. Link the AnalysisRun to this user so it shows on their dashboard.
-            //    getUserReports() queries by lead.email === user.email, so we need
-            //    to update the Lead record associated with this AnalysisRun.
+            // 5. Link ONLY the specific AnalysisRun to this user's dashboard.
+            //    getUserReports() finds analyses where lead.email === user.email.
+            //    Strategy: if user already has a Lead, re-point this ONE analysis
+            //    to that Lead. Otherwise create a fresh Lead owned by the user and
+            //    move this ONE analysis to it. Never change email on an existing
+            //    Lead that may own other analyses.
             if (claimCode.analysisRunId) {
                 try {
                     const analysisRun = await tx.analysisRun.findUnique({
                         where: { id: claimCode.analysisRunId },
-                        select: { id: true, leadId: true },
+                        select: { id: true, leadId: true, businessName: true, businessUrl: true },
                     });
 
                     if (analysisRun) {
-                        // Check if a Lead already exists with the user's email
+                        // Does this user already have a Lead?
+                        let targetLeadId: string;
                         const existingLead = await tx.lead.findUnique({
                             where: { email: user.email },
                         });
 
                         if (existingLead) {
-                            // Re-point the AnalysisRun to the user's existing Lead
-                            await tx.analysisRun.update({
-                                where: { id: analysisRun.id },
-                                data: { leadId: existingLead.id },
-                            });
-                            // Also set userId on that lead if not set
+                            targetLeadId = existingLead.id;
+                            // Ensure userId is set
                             if (!existingLead.userId) {
                                 await tx.lead.update({
                                     where: { id: existingLead.id },
                                     data: { userId: user.id },
                                 });
                             }
-                            this.logger.log(
-                                `CLAIM_LINKED: Re-pointed analysis ${analysisRun.id} to existing lead ${existingLead.id} (email: ${user.email})`,
-                            );
                         } else {
-                            // Update the current Lead's email and userId
-                            await tx.lead.update({
-                                where: { id: analysisRun.leadId },
+                            // Create a new Lead owned by this user
+                            const newLead = await tx.lead.create({
                                 data: {
                                     email: user.email,
+                                    firstName: user.email.split('@')[0],
+                                    lastName: '',
+                                    phone: '',
+                                    businessName: analysisRun.businessName || claimCode.targetDomain,
+                                    businessUrl: analysisRun.businessUrl || `https://${claimCode.targetDomain}`,
+                                    source: 'claim_code',
                                     userId: user.id,
                                 },
                             });
-                            this.logger.log(
-                                `CLAIM_LINKED: Updated lead ${analysisRun.leadId} email to ${user.email}`,
-                            );
+                            targetLeadId = newLead.id;
                         }
+
+                        // Move ONLY this specific AnalysisRun to the user's Lead
+                        await tx.analysisRun.update({
+                            where: { id: claimCode.analysisRunId },
+                            data: { leadId: targetLeadId },
+                        });
+
+                        this.logger.log(
+                            `CLAIM_LINKED: Moved analysis ${claimCode.analysisRunId} to lead ${targetLeadId} (user: ${user.email})`,
+                        );
                     }
                 } catch (linkErr) {
                     // Don't fail the whole redemption if linking fails
