@@ -1798,7 +1798,8 @@ Return ONLY: {"differentiationScore": X, "sharedPhrases": ["phrase1"], "uniqueTo
     async analyzeAeoReadiness(
         schemaData: any,
         content: string,
-        domain: string
+        domain: string,
+        options?: { keywordCount?: number; rawHtml?: string },
     ): Promise<CategoryAnalysis & { platformPresence: PlatformPresence }> {
         const subcategories: Record<string, SubcategoryScore> = {};
 
@@ -1826,27 +1827,74 @@ Return ONLY: {"differentiationScore": X, "sharedPhrases": ["phrase1"], "uniqueTo
         };
 
         // Content Structure for LLMs (25%)
-        const hasLists = content.includes('- ') || content.includes('• ');
-        const hasTables = content.includes('|');
-        const hasQA = content.toLowerCase().includes('q:') || content.toLowerCase().includes('question');
-        const structureScore = (hasLists ? 30 : 0) + (hasTables ? 30 : 0) + (hasQA ? 40 : 0);
+        const rawHtml = options?.rawHtml || '';
+        const htmlLower = rawHtml.toLowerCase();
+
+        // Real HTML element checks
+        const listItemCount = (htmlLower.match(/<li[\s>]/g) || []).length;
+        const hasLists = listItemCount >= 3;
+        const tableCount = (htmlLower.match(/<table[\s>]/g) || []).length;
+        const hasTables = tableCount > 0;
+        const hasFaqHeading = /<h[1-6][^>]*>.*?faq/i.test(rawHtml) || /<h[1-6][^>]*>.*?frequently/i.test(rawHtml);
+        const hasDetailsSummary = htmlLower.includes('<details') && htmlLower.includes('<summary');
+        const hasDefinitionList = htmlLower.includes('<dl') && htmlLower.includes('<dt');
+        const hasQA = hasFaqHeading || hasDetailsSummary || content.toLowerCase().includes('q:') || content.toLowerCase().includes('question:');
+
+        // Fallback to markdown checks if no HTML available
+        const hasMdLists = !rawHtml && (content.includes('- ') || content.includes('• '));
+        const hasMdTables = !rawHtml && content.includes('|');
+
+        let structureScore = 0;
+        if (hasLists || hasMdLists) structureScore += 25;
+        if (listItemCount >= 10) structureScore += 5;   // rich list content
+        if (hasTables || hasMdTables) structureScore += 20;
+        if (hasQA) structureScore += 25;
+        if (hasDetailsSummary) structureScore += 10;     // accordion/FAQ pattern
+        if (hasDefinitionList) structureScore += 10;
+        structureScore = Math.min(100, structureScore + 15); // base credit for having any content
+
+        const structureEvidence: string[] = [];
+        if (hasLists || hasMdLists) structureEvidence.push(`List elements (${listItemCount || 'markdown'})`);
+        if (hasTables || hasMdTables) structureEvidence.push(`Table elements (${tableCount || 'markdown'})`);
+        if (hasQA) structureEvidence.push('FAQ/Q&A content detected');
+        if (hasDetailsSummary) structureEvidence.push('Accordion (details/summary) elements');
+        if (hasDefinitionList) structureEvidence.push('Definition list (dl/dt/dd) elements');
+
         subcategories.contentStructureForLLMs = {
-            score: Math.min(100, structureScore + 20),
+            score: Math.min(100, structureScore),
             weight: 0.25,
-            evidence: [
-                hasLists ? 'Has list formatting' : null,
-                hasTables ? 'Has table formatting' : null,
-                hasQA ? 'Has Q&A structure' : null,
-            ].filter(Boolean) as string[],
+            evidence: structureEvidence.length > 0 ? structureEvidence : ['No LLM-friendly structure detected'],
             issues: structureScore < 50 ? ['Content lacks LLM-friendly structure'] : [],
         };
 
-        // Brand Search Volume (20%) - would need real data
+        // Brand Search Volume (20%) — use keyword count as proxy
+        const keywordCount = options?.keywordCount ?? 0;
+        let brandSearchScore: number;
+        const brandEvidence: string[] = [];
+
+        if (keywordCount > 0) {
+            // Map keyword count to 0-100 scale:
+            // 0-50 keywords → 15-35 (low visibility)
+            // 50-200 → 35-55 (moderate)
+            // 200-1000 → 55-75 (good)
+            // 1000-5000 → 75-90 (strong)
+            // 5000+ → 90-100 (dominant)
+            if (keywordCount >= 5000) brandSearchScore = Math.min(100, 90 + Math.floor(keywordCount / 5000) * 2);
+            else if (keywordCount >= 1000) brandSearchScore = 75 + Math.round((keywordCount - 1000) / 4000 * 15);
+            else if (keywordCount >= 200) brandSearchScore = 55 + Math.round((keywordCount - 200) / 800 * 20);
+            else if (keywordCount >= 50) brandSearchScore = 35 + Math.round((keywordCount - 50) / 150 * 20);
+            else brandSearchScore = 15 + Math.round(keywordCount / 50 * 20);
+            brandEvidence.push(`${keywordCount.toLocaleString()} organic keywords indexed`);
+        } else {
+            brandSearchScore = 30; // conservative default when no data
+            brandEvidence.push('Keyword data unavailable — estimated conservatively');
+        }
+
         subcategories.brandSearchVolume = {
-            score: 50, // Default - would need real search volume data
+            score: Math.max(0, Math.min(100, brandSearchScore)),
             weight: 0.20,
-            evidence: ['Brand search volume data not available'],
-            issues: [],
+            evidence: brandEvidence,
+            issues: brandSearchScore < 40 ? ['Low organic visibility suggests weak brand search volume'] : [],
         };
 
         const categoryScore = this.calculateCategoryScore(subcategories, 'aeoReadiness');

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+﻿import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { FirecrawlService, FirecrawlDocument } from './firecrawl.service';
 import { DataForSEOService, KeywordGapResult, BacklinkComparison } from './dataforseo.service';
@@ -11,6 +11,8 @@ import { CruxService, CruxComparison } from './crux.service';
 import { SerpFeatureService, SerpComparison } from './serp-feature.service';
 import { ContentGapService, ContentGapComparison } from './content-gap.service';
 import { SocialProofService, SocialProofComparison } from './social-proof.service';
+import { InternalStructureService, InternalStructureResult, InternalStructureInsight } from './internal-structure.service';
+import { OnPageSeoService, OnPageSeoResult, OnPageSeoInsight } from './onpage-seo.service';
 import { CATEGORY_WEIGHTS, ScoreCategory } from '@aeo-live/shared';
 
 // ============================================
@@ -120,6 +122,8 @@ export class AnalysisEngine {
     private serpFeature = new SerpFeatureService();
     private contentGap = new ContentGapService();
     private socialProof = new SocialProofService();
+    private internalStructure = new InternalStructureService();
+    private onPageSeo = new OnPageSeoService();
 
     private progressCallbacks = new Map<string, (progress: AnalysisProgress) => void>();
 
@@ -231,7 +235,7 @@ export class AnalysisEngine {
 
             // Stage 5: Brand Voice Analysis (85-90%)
             console.log(`\n[AnalysisEngine] STAGE 5: Brand Voice Analysis...`);
-            this.updateProgress(analysisId, 'analyzing_voice', 87, 'Analyzing brand voice...');
+            this.updateProgress(analysisId, 'analyzing_voice', 85, 'Analyzing brand voice...');
 
             // V3 Brand Voice Analysis (uses yourDomain/competitorDomain from earlier)
             const voiceStart = Date.now();
@@ -252,14 +256,51 @@ export class AnalysisEngine {
                 this.v3Analysis.analyzeAeoReadiness(
                     yourScrape.data!.metadata,
                     yourScrape.data!.markdown || '',
-                    yourDomain
+                    yourDomain,
+                    { keywordCount: yourSEO?.organicKeywords || 0, rawHtml: yourScrape.data!.html || '' },
                 ),
                 this.v3Analysis.analyzeAeoReadiness(
                     competitorScrape.data!.metadata,
                     competitorScrape.data!.markdown || '',
-                    competitorDomain
+                    competitorDomain,
+                    { keywordCount: competitorSEO?.organicKeywords || 0, rawHtml: competitorScrape.data!.html || '' },
                 ),
             ]);
+
+            // Stage 5.05: Internal Structure + On-Page SEO (real crawl-based analysis)
+            console.log(`\n[AnalysisEngine] STAGE 5.05: Internal Structure + On-Page SEO...`);
+            this.updateProgress(analysisId, 'checking_seo', 87, 'Crawling site structure and on-page elements...');
+
+            const structSeoStart = Date.now();
+            let yourInternalStructure: InternalStructureResult | undefined;
+            let competitorInternalStructure: InternalStructureResult | undefined;
+            let yourOnPageSeo: OnPageSeoResult | undefined;
+            let competitorOnPageSeo: OnPageSeoResult | undefined;
+            let internalStructureInsights: InternalStructureInsight[] = [];
+            let onPageSeoInsights: OnPageSeoInsight[] = [];
+
+            try {
+                [yourInternalStructure, competitorInternalStructure, yourOnPageSeo, competitorOnPageSeo] = await Promise.all([
+                    this.internalStructure.analyze(yourUrl),
+                    this.internalStructure.analyze(competitorUrl),
+                    this.onPageSeo.analyze(yourUrl),
+                    this.onPageSeo.analyze(competitorUrl),
+                ]);
+
+                internalStructureInsights = this.internalStructure.generateInsights(
+                    yourInternalStructure.data, competitorInternalStructure.data,
+                );
+                onPageSeoInsights = this.onPageSeo.generateInsights(
+                    yourOnPageSeo.data, competitorOnPageSeo.data,
+                );
+
+                console.log(`[AnalysisEngine] Internal Structure: You ${yourInternalStructure.overall} vs Competitor ${competitorInternalStructure.overall}`);
+                console.log(`[AnalysisEngine] On-Page SEO: You ${yourOnPageSeo.overall} vs Competitor ${competitorOnPageSeo.overall}`);
+                console.log(`[AnalysisEngine] Structure + On-Page complete (${Date.now() - structSeoStart}ms)`);
+            } catch (structError) {
+                console.error(`[AnalysisEngine] Internal Structure / On-Page SEO failed:`, structError);
+                // Continue without â€” the buildCategoryScores fallback will still produce scores
+            }
 
             // Stage 5.5: Generate Intelligence Report (Brain-melting analysis!)
             console.log(`\n[AnalysisEngine] STAGE 5.5: Generating Intelligence Report...`);
@@ -438,6 +479,36 @@ export class AnalysisEngine {
             console.log(`\n[AnalysisEngine] STAGE 6: Calculating Final Scores with v3.0 Weights...`);
             this.updateProgress(analysisId, 'scoring', 92, 'Calculating weighted scores...');
 
+            // Pre-compute v3 analysis results so we can use them in overrides
+            const yourSeoElements = yourScrape.data ? this.firecrawl.extractSEOElements(yourScrape.data) : undefined;
+            const competitorSeoElements = competitorScrape.data ? this.firecrawl.extractSEOElements(competitorScrape.data) : undefined;
+
+            const yourTechSeo = this.v3Analysis.analyzeTechnicalSeo(
+                perfComparison.url1, yourScrape.data, yourSeoElements,
+            );
+            const competitorTechSeo = this.v3Analysis.analyzeTechnicalSeo(
+                perfComparison.url2, competitorScrape.data, competitorSeoElements,
+            );
+
+            const yourTopicalAuthority = await this.v3Analysis.analyzeTopicalAuthority(
+                yourScrape.data!.markdown || '', yourUrl,
+                yourSeoElements || { headings: { h1: [], h2: [], h3: [] }, links: { internal: 0, external: 0 }, wordCount: 0, hasSchema: false },
+                competitorScrape.data?.markdown || '', competitorSeoElements,
+            );
+            const competitorTopicalAuthority = await this.v3Analysis.analyzeTopicalAuthority(
+                competitorScrape.data!.markdown || '', competitorUrl,
+                competitorSeoElements || { headings: { h1: [], h2: [], h3: [] }, links: { internal: 0, external: 0 }, wordCount: 0, hasSchema: false },
+                yourScrape.data?.markdown || '', yourSeoElements,
+            );
+
+            const yourOnpageSeo = this.v3Analysis.analyzeOnPageSeo(yourScrape.data!.metadata, yourSeoElements);
+            const competitorOnpageSeo = this.v3Analysis.analyzeOnPageSeo(competitorScrape.data!.metadata, competitorSeoElements);
+
+            const yourUxEngagement = this.v3Analysis.analyzeUxEngagement(yourScrape.data!.html || '', yourScrape.data!.metadata);
+            const competitorUxEngagement = this.v3Analysis.analyzeUxEngagement(competitorScrape.data!.html || '', competitorScrape.data!.metadata);
+
+            console.log(`[AnalysisEngine] V3 pre-compute: TechSEO ${yourTechSeo.score}/${competitorTechSeo.score}, Topical ${yourTopicalAuthority.score}/${competitorTopicalAuthority.score}, UX ${yourUxEngagement.score}/${competitorUxEngagement.score}`);
+
             // Build category scores with V3 enhanced data
             const categories = this.buildCategoryScores(
                 yourScrape.data!,
@@ -474,7 +545,6 @@ export class AnalysisEngine {
                 aeoCategory.details = {
                     ...aeoCategory.details,
                     platformPresence: yourAeo.platformPresence,
-                    // Add citation test data to AEO category details
                     citationTest: citationTestResult ? {
                         yourCitabilityScore: citationTestResult.citabilityScore,
                         competitorCitabilityScore: citationTestResult.competitorCitabilityScore,
@@ -484,6 +554,95 @@ export class AnalysisEngine {
                         verdict: citationTestResult.citabilityVerdict,
                     } : undefined,
                 };
+            }
+
+            // Override Internal Structure with real crawl-based analysis
+            const internalStructureCategory = categories.find(c => c.name === 'Internal Structure');
+            if (internalStructureCategory && yourInternalStructure && competitorInternalStructure) {
+                internalStructureCategory.score = yourInternalStructure.overall;
+                internalStructureCategory.competitorScore = competitorInternalStructure.overall;
+                internalStructureCategory.status = yourInternalStructure.overall > competitorInternalStructure.overall
+                    ? 'winning' : yourInternalStructure.overall < competitorInternalStructure.overall
+                        ? 'losing' : 'tied';
+                internalStructureCategory.insights = internalStructureInsights
+                    .map(i => `${i.severity === 'critical' ? 'ðŸ”´' : i.severity === 'high' ? 'ðŸŸ¡' : 'ðŸ”µ'} ${i.title}`);
+                internalStructureCategory.recommendations = internalStructureInsights
+                    .map(i => `${i.action} (${i.impact})`);
+                internalStructureCategory.details = {
+                    ...internalStructureCategory.details,
+                    yourPillars: yourInternalStructure.pillars,
+                    competitorPillars: competitorInternalStructure.pillars,
+                    yourData: yourInternalStructure.data,
+                    competitorData: competitorInternalStructure.data,
+                    insights: internalStructureInsights,
+                };
+            }
+
+            // Override On-Page SEO with real page-level analysis
+            const onPageSeoCategory = categories.find(c => c.name === 'On-Page SEO');
+            if (onPageSeoCategory && yourOnPageSeo && competitorOnPageSeo) {
+                onPageSeoCategory.score = yourOnPageSeo.overall;
+                onPageSeoCategory.competitorScore = competitorOnPageSeo.overall;
+                onPageSeoCategory.status = yourOnPageSeo.overall > competitorOnPageSeo.overall
+                    ? 'winning' : yourOnPageSeo.overall < competitorOnPageSeo.overall
+                        ? 'losing' : 'tied';
+                onPageSeoCategory.insights = onPageSeoInsights
+                    .map(i => `${i.severity === 'critical' ? 'ðŸ”´' : i.severity === 'high' ? 'ðŸŸ¡' : 'ðŸ”µ'} ${i.title}`);
+                onPageSeoCategory.recommendations = onPageSeoInsights
+                    .map(i => `${i.action} (${i.impact})`);
+                onPageSeoCategory.details = {
+                    ...onPageSeoCategory.details,
+                    yourPillars: yourOnPageSeo.pillars,
+                    competitorPillars: competitorOnPageSeo.pillars,
+                    yourData: yourOnPageSeo.data,
+                    competitorData: competitorOnPageSeo.data,
+                    insights: onPageSeoInsights,
+                };
+            }
+
+            // Override Technical SEO with real v3 Lighthouse-based analysis
+            const techCategory = categories.find(c => c.name === 'Technical SEO');
+            if (techCategory) {
+                techCategory.score = yourTechSeo.score;
+                techCategory.competitorScore = competitorTechSeo.score;
+                techCategory.status = yourTechSeo.score > competitorTechSeo.score
+                    ? 'winning' : yourTechSeo.score < competitorTechSeo.score
+                        ? 'losing' : 'tied';
+                techCategory.subcategories = yourTechSeo.subcategories;
+                techCategory.insights = yourTechSeo.insights;
+                techCategory.recommendations = yourTechSeo.recommendations;
+            }
+
+            // Override Topical Authority with v3 deep Claude analysis
+            const topicalCategory = categories.find(c => c.name === 'Topical Authority');
+            if (topicalCategory) {
+                topicalCategory.score = yourTopicalAuthority.score;
+                topicalCategory.competitorScore = competitorTopicalAuthority.score;
+                topicalCategory.status = yourTopicalAuthority.score > competitorTopicalAuthority.score
+                    ? 'winning' : yourTopicalAuthority.score < competitorTopicalAuthority.score
+                        ? 'losing' : 'tied';
+                topicalCategory.subcategories = yourTopicalAuthority.subcategories;
+                topicalCategory.insights = yourTopicalAuthority.insights;
+                topicalCategory.recommendations = yourTopicalAuthority.recommendations;
+                topicalCategory.details = {
+                    ...topicalCategory.details,
+                    entityAnalysis: (yourTopicalAuthority as any).entityAnalysis,
+                    topicAnalysis: (yourTopicalAuthority as any).topicAnalysis,
+                    authorityLevel: (yourTopicalAuthority as any).authorityLevel,
+                };
+            }
+
+            // Override UX & Engagement with v3 HTML-based analysis
+            const uxCategory = categories.find(c => c.name === 'UX & Engagement');
+            if (uxCategory) {
+                uxCategory.score = yourUxEngagement.score;
+                uxCategory.competitorScore = competitorUxEngagement.score;
+                uxCategory.status = yourUxEngagement.score > competitorUxEngagement.score
+                    ? 'winning' : yourUxEngagement.score < competitorUxEngagement.score
+                        ? 'losing' : 'tied';
+                uxCategory.subcategories = yourUxEngagement.subcategories;
+                uxCategory.insights = yourUxEngagement.insights;
+                uxCategory.recommendations = yourUxEngagement.recommendations;
             }
 
 
@@ -551,41 +710,21 @@ export class AnalysisEngine {
                 },
                 v3Analysis: {
                     your: {
-                        technicalSeo: this.v3Analysis.analyzeTechnicalSeo(
-                            perfComparison.url1,
-                            yourScrape.data,
-                            yourScrape.data ? this.firecrawl.extractSEOElements(yourScrape.data) : undefined
-                        ),
-                        onpageSeo: this.v3Analysis.analyzeOnPageSeo(yourScrape.data!.metadata, yourScrape.data ? this.firecrawl.extractSEOElements(yourScrape.data) : undefined),
-                        topicalAuthority: await this.v3Analysis.analyzeTopicalAuthority(
-                            yourScrape.data!.markdown || '',
-                            yourUrl,
-                            yourScrape.data ? this.firecrawl.extractSEOElements(yourScrape.data) : { headings: { h1: [], h2: [], h3: [] }, links: { internal: 0, external: 0 }, wordCount: 0, hasSchema: false },
-                            competitorScrape.data?.markdown || '',
-                            competitorScrape.data ? this.firecrawl.extractSEOElements(competitorScrape.data) : undefined
-                        ),
+                        technicalSeo: yourTechSeo,
+                        onpageSeo: yourOnpageSeo,
+                        topicalAuthority: yourTopicalAuthority,
                         aeoReadiness: yourAeo,
                         brandVoice: yourVoice,
-                        uxEngagement: this.v3Analysis.analyzeUxEngagement(yourScrape.data!.html || '', yourScrape.data!.metadata),
+                        uxEngagement: yourUxEngagement,
                         primaryScore: yourScore,
                     },
                     competitor: {
-                        technicalSeo: this.v3Analysis.analyzeTechnicalSeo(
-                            perfComparison.url2,
-                            competitorScrape.data,
-                            competitorScrape.data ? this.firecrawl.extractSEOElements(competitorScrape.data) : undefined
-                        ),
-                        onpageSeo: this.v3Analysis.analyzeOnPageSeo(competitorScrape.data!.metadata, competitorScrape.data ? this.firecrawl.extractSEOElements(competitorScrape.data) : undefined),
-                        topicalAuthority: await this.v3Analysis.analyzeTopicalAuthority(
-                            competitorScrape.data!.markdown || '',
-                            competitorUrl,
-                            competitorScrape.data ? this.firecrawl.extractSEOElements(competitorScrape.data) : { headings: { h1: [], h2: [], h3: [] }, links: { internal: 0, external: 0 }, wordCount: 0, hasSchema: false },
-                            yourScrape.data?.markdown || '',
-                            yourScrape.data ? this.firecrawl.extractSEOElements(yourScrape.data) : undefined
-                        ),
+                        technicalSeo: competitorTechSeo,
+                        onpageSeo: competitorOnpageSeo,
+                        topicalAuthority: competitorTopicalAuthority,
                         aeoReadiness: competitorAeo,
                         brandVoice: competitorVoice,
-                        uxEngagement: this.v3Analysis.analyzeUxEngagement(competitorScrape.data!.html || '', competitorScrape.data!.metadata),
+                        uxEngagement: competitorUxEngagement,
                         primaryScore: competitorScore,
                     },
                     // Raw PageSpeed data for rich frontend visualizations
@@ -810,7 +949,7 @@ Analyze both sites and return ONLY valid JSON with this structure:
                 `H2 tags: ${yourH2Count}`,
                 `Images: ${yourImgCount}`,
                 `Word count: ~${yourWordCount}`,
-                yourMeta.title ? `Title length: ${yourMeta.title.length} chars ${yourMeta.title.length >= 50 && yourMeta.title.length <= 60 ? '✓' : ''}` : 'Missing title',
+                yourMeta.title ? `Title length: ${yourMeta.title.length} chars ${yourMeta.title.length >= 50 && yourMeta.title.length <= 60 ? 'âœ“' : ''}` : 'Missing title',
             ].filter(Boolean),
             recommendations: [
                 yourH1Count === 0 ? 'Add H1 heading to page' : yourH1Count > 1 ? `Reduce H1 tags (have ${yourH1Count}, should be 1)` : null,
@@ -915,8 +1054,8 @@ Analyze both sites and return ONLY valid JSON with this structure:
             competitorScore: compPerfScore,
             status: perfScore > compPerfScore ? 'winning' : perfScore < compPerfScore ? 'losing' : 'tied',
             insights: [
-                yourPerf?.metrics.lcp ? `LCP: ${(yourPerf.metrics.lcp / 1000).toFixed(2)}s ${yourPerf.metrics.lcp < 2500 ? '✓ Good' : '⚠ Needs work'}` : 'LCP not measured',
-                yourPerf?.metrics.cls !== undefined ? `CLS: ${yourPerf.metrics.cls.toFixed(3)} ${yourPerf.metrics.cls < 0.1 ? '✓ Good' : '⚠ Needs work'}` : 'CLS not measured',
+                yourPerf?.metrics.lcp ? `LCP: ${(yourPerf.metrics.lcp / 1000).toFixed(2)}s ${yourPerf.metrics.lcp < 2500 ? 'âœ“ Good' : 'âš  Needs work'}` : 'LCP not measured',
+                yourPerf?.metrics.cls !== undefined ? `CLS: ${yourPerf.metrics.cls.toFixed(3)} ${yourPerf.metrics.cls < 0.1 ? 'âœ“ Good' : 'âš  Needs work'}` : 'CLS not measured',
                 yourPerf?.scores.accessibility ? `Accessibility: ${yourPerf.scores.accessibility}/100` : null,
             ].filter(Boolean) as string[],
             recommendations: yourPerf?.opportunities.map(o => o.title).slice(0, 4) || [
