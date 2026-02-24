@@ -102,6 +102,32 @@ function drawArc(
 }
 
 /**
+ * Draw a small lock icon using shapes (no font/emoji dependency).
+ */
+function drawLockIcon(
+    doc: PDFKit.PDFDocument,
+    x: number,
+    y: number,
+    size = 8,
+    color = '#94a3b8',
+) {
+    const s = size;
+    // Lock body (rounded rectangle)
+    doc.roundedRect(x, y + s * 0.4, s, s * 0.7, 1).fill(color);
+    // Lock shackle (semicircle arc on top using SVG path)
+    const arcR = s * 0.3;
+    const arcCx = x + s / 2;
+    const arcCy = y + s * 0.4;
+    const shacklePath = `M ${arcCx - arcR} ${arcCy} A ${arcR} ${arcR} 0 0 1 ${arcCx + arcR} ${arcCy}`;
+    doc.save();
+    doc.path(shacklePath)
+        .lineWidth(1.5)
+        .strokeColor(color)
+        .stroke();
+    doc.restore();
+}
+
+/**
  * Draw a circular score gauge — dark ring background, colored arc, score number.
  */
 function drawScoreGauge(
@@ -112,7 +138,7 @@ function drawScoreGauge(
     color: string,
 ) {
     const radius = 50;
-    const lineW = 9;
+    const lineW = 10;
 
     // Background track ring
     doc.save();
@@ -202,11 +228,12 @@ function drawCategoryRow(
             align: 'center',
         });
 
-    // Locked insights
+    // Locked insights with drawn lock icon
+    drawLockIcon(doc, 458, y + 4, 8, c.textMuted);
     doc.font('Helvetica')
         .fontSize(7)
         .fillColor(c.textMuted)
-        .text(`[LOCKED] ${insightCount || '?'} insights`, 458, y + 7, {
+        .text(`${insightCount || '?'} insights`, 470, y + 7, {
             lineBreak: false,
         });
 }
@@ -226,12 +253,9 @@ function drawLockedCard(
     // Dark card background
     doc.roundedRect(x, y, w, h, 10).fill(c.cardDark);
 
-    // Lock icon circle
+    // Lock icon circle with drawn lock
     doc.circle(x + 22, y + 22, 14).fill(c.bgDark);
-    doc.font('Helvetica-Bold')
-        .fontSize(10)
-        .fillColor(c.textMuted)
-        .text('?', x + 18, y + 16, { width: 10, align: 'center' });
+    drawLockIcon(doc, x + 17, y + 14, 10, c.textMuted);
 
     // Title
     doc.font('Helvetica-Bold')
@@ -565,35 +589,37 @@ export class PdfService {
         // ---- Blurred preview section ----
         const previewY = startY + 3 * (cardH + 15) + 20;
 
-        // Container
-        doc.roundedRect(40, previewY, W - 80, 130, 10).fill(c.slate200);
+        // Container — taller for more impact
+        const pvH = 140;
+        doc.roundedRect(40, previewY, W - 80, pvH, 10).fill(c.slate200);
 
-        // Fake blurred content lines
-        for (let i = 0; i < 8; i++) {
-            const lineWidth = 80 + Math.random() * 350;
-            const lineX = 60 + (i % 3) * 10;
+        // Fake blurred content lines (varied widths)
+        for (let i = 0; i < 9; i++) {
+            const lineWidth = 60 + Math.random() * 380;
+            const lineX = 55 + (i % 4) * 12;
             doc.roundedRect(
                 lineX,
-                previewY + 15 + i * 13,
+                previewY + 14 + i * 13,
                 lineWidth,
                 6,
                 3,
             ).fill(c.slate300);
         }
 
-        // White frost overlay
+        // Darker frost overlay (0.75 opacity)
         doc.save();
-        doc.roundedRect(40, previewY, W - 80, 130, 10)
-            .fillOpacity(0.82)
+        doc.roundedRect(40, previewY, W - 80, pvH, 10)
+            .fillOpacity(0.75)
             .fill(c.white);
         doc.restore();
         doc.fillOpacity(1);
 
-        // Lock message on overlay
+        // Drawn lock icon + message on overlay
+        drawLockIcon(doc, W / 2 - 6, previewY + 42, 12, c.slate600);
         doc.font('Helvetica-Bold')
             .fontSize(13)
             .fillColor(c.slate600)
-            .text('[LOCKED]  Unlock to reveal full analysis', 40, previewY + 45, {
+            .text('Unlock to reveal full analysis', 40, previewY + 60, {
                 width: W - 80,
                 align: 'center',
             });
@@ -603,7 +629,7 @@ export class PdfService {
             .text(
                 'Detailed category breakdowns, recommendations, and revenue projections',
                 40,
-                previewY + 65,
+                previewY + 80,
                 { width: W - 80, align: 'center' },
             );
 
