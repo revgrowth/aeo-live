@@ -351,18 +351,16 @@ export default function AdminPreviewPage() {
     const handleDownloadPdf = async () => {
         setIsDownloadingPdf(true);
         try {
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-            let url = `${baseUrl}/admin/reports/${analysisId}/teaser-pdf`;
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+            let url = `${baseUrl}/api/v1/admin/reports/${analysisId}/teaser-pdf`;
             if (lastClaimCode) {
                 url += `?claimCode=${encodeURIComponent(lastClaimCode)}`;
             }
 
-            // Get auth token from localStorage
-            const storedTokens = localStorage.getItem('auth_tokens');
             const headers: Record<string, string> = {};
-            if (storedTokens) {
-                const { accessToken } = JSON.parse(storedTokens);
-                if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+            const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
             }
 
             const resp = await fetch(url, { headers });

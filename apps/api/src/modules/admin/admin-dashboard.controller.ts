@@ -133,7 +133,6 @@ export class AdminDashboardController {
      * Generate a claim code linked to an analysis and optionally return teaser PDF.
      */
     @Post('reports/:analysisId/generate-claim')
-    @Roles('SUPER_ADMIN')
     async generateClaimForReport(
         @Param('analysisId') analysisId: string,
         @Body() body: { domain?: string },
