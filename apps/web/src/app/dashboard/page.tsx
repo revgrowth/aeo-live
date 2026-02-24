@@ -59,8 +59,8 @@ export default function DashboardPage() {
     const [analysisLoading, setAnalysisLoading] = useState(false);
     const [analysisError, setAnalysisError] = useState('');
 
-    // Check if user is super admin
-    const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'OWNER';
+    // Only actual SUPER_ADMIN accounts get admin features (not OWNER)
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
     const loadDashboardData = useCallback(async () => {
         setIsLoading(true);

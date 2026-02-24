@@ -38,7 +38,7 @@ export default function SettingsPage() {
     // Account deletion state
     const [deletingAccount, setDeletingAccount] = useState(false);
 
-    const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'OWNER';
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
     if (authLoading) {
         return (
