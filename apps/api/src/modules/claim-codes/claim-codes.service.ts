@@ -179,8 +179,9 @@ export class ClaimCodesService {
     }
 
     /**
-     * Redeem a claim code — creates a Project in the user's organization.
-     * Called during registration or as a standalone POST.
+     * Redeem a claim code — links the pre-built analysis to the user's account.
+     * Creates a Project, updates the Lead ownership so the report appears on
+     * the user's dashboard via getUserReports() (which queries lead.email).
      */
     async redeem(code: string, userId: string) {
         return this.prisma.$transaction(async (tx) => {
@@ -213,10 +214,10 @@ export class ClaimCodesService {
                 );
             }
 
-            // 2. Get the user + their organization
+            // 2. Get the user + their organization + email
             const user = await tx.user.findUnique({
                 where: { id: userId },
-                select: { id: true, organizationId: true },
+                select: { id: true, email: true, organizationId: true },
             });
 
             if (!user) {
@@ -245,6 +246,60 @@ export class ClaimCodesService {
                     primaryDomain: claimCode.targetDomain,
                 },
             });
+
+            // 5. Link the AnalysisRun to this user so it shows on their dashboard.
+            //    getUserReports() queries by lead.email === user.email, so we need
+            //    to update the Lead record associated with this AnalysisRun.
+            if (claimCode.analysisRunId) {
+                try {
+                    const analysisRun = await tx.analysisRun.findUnique({
+                        where: { id: claimCode.analysisRunId },
+                        select: { id: true, leadId: true },
+                    });
+
+                    if (analysisRun) {
+                        // Check if a Lead already exists with the user's email
+                        const existingLead = await tx.lead.findUnique({
+                            where: { email: user.email },
+                        });
+
+                        if (existingLead) {
+                            // Re-point the AnalysisRun to the user's existing Lead
+                            await tx.analysisRun.update({
+                                where: { id: analysisRun.id },
+                                data: { leadId: existingLead.id },
+                            });
+                            // Also set userId on that lead if not set
+                            if (!existingLead.userId) {
+                                await tx.lead.update({
+                                    where: { id: existingLead.id },
+                                    data: { userId: user.id },
+                                });
+                            }
+                            this.logger.log(
+                                `CLAIM_LINKED: Re-pointed analysis ${analysisRun.id} to existing lead ${existingLead.id} (email: ${user.email})`,
+                            );
+                        } else {
+                            // Update the current Lead's email and userId
+                            await tx.lead.update({
+                                where: { id: analysisRun.leadId },
+                                data: {
+                                    email: user.email,
+                                    userId: user.id,
+                                },
+                            });
+                            this.logger.log(
+                                `CLAIM_LINKED: Updated lead ${analysisRun.leadId} email to ${user.email}`,
+                            );
+                        }
+                    }
+                } catch (linkErr) {
+                    // Don't fail the whole redemption if linking fails
+                    this.logger.error(
+                        `CLAIM_LINK_FAILED: Could not link analysis to user: ${linkErr}`,
+                    );
+                }
+            }
 
             this.logger.log(
                 `CLAIM_CODE_REDEEMED: ${JSON.stringify({
