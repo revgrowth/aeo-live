@@ -23,6 +23,299 @@ const staggerContainer = {
     visible: { transition: { staggerChildren: 0.1 } },
 };
 
+
+/* ─── Intelligence Suite Tabs ─── */
+function IntelligenceSuiteTabs() {
+    const [activeTab, setActiveTab] = useState(0);
+    const tabs = [
+        { label: 'Revenue Analysis', icon: '💰', color: 'from-violet-500 to-purple-600' },
+        { label: 'AI Visibility', icon: '🤖', color: 'from-cyan-500 to-blue-600' },
+        { label: 'Competitive Radar', icon: '🎯', color: 'from-amber-500 to-orange-500' },
+        { label: 'Industry Benchmarks', icon: '📊', color: 'from-emerald-500 to-teal-600' },
+        { label: 'Quick Wins', icon: '⚡', color: 'from-rose-500 to-pink-600' },
+    ];
+
+    return (
+        <div>
+            {/* Tab Bar */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+                {tabs.map((tab, i) => (
+                    <button
+                        key={tab.label}
+                        onClick={() => setActiveTab(i)}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                            activeTab === i
+                                ? 'bg-gradient-to-r ' + tab.color + ' text-white shadow-lg scale-105'
+                                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:ring-gray-300 hover:shadow-md'
+                        }`}
+                    >
+                        <span className="text-base">{tab.icon}</span>
+                        <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="bg-white rounded-3xl ring-1 ring-gray-100 shadow-xl overflow-hidden">
+                {/* Revenue Analysis */}
+                {activeTab === 0 && (
+                    <div className="grid md:grid-cols-5 gap-0">
+                        <div className="md:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-5 shadow-lg shadow-violet-500/20">
+                                <TrendingUp className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Revenue Analysis</h3>
+                            <p className="text-gray-500 mb-5 leading-relaxed">Calculate exactly how much you&apos;re losing to competitors and where to recover it.</p>
+                            <div className="space-y-3">
+                                {['Lost Revenue Calculator', 'Traffic Recovery Map', 'ROI Projections'].map(f => (
+                                    <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden min-h-[320px]">
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl" />
+                            <div className="relative space-y-4">
+                                <p className="text-[10px] text-slate-500 font-semibold tracking-[2px] uppercase mb-4">Revenue Bleed Calculator</p>
+                                {[
+                                    { label: 'Leads Lost to Competitor', value: '~500/mo', bar: 62, color: 'from-rose-500 to-red-500' },
+                                    { label: 'Customers Lost', value: '~13/mo', bar: 35, color: 'from-orange-500 to-amber-500' },
+                                    { label: 'Monthly Revenue Impact', value: '$6,500', bar: 48, color: 'from-violet-500 to-purple-500' },
+                                    { label: 'Annual Revenue at Risk', value: '$78,000', bar: 85, color: 'from-red-500 to-rose-600' },
+                                ].map(row => (
+                                    <div key={row.label}>
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <span className="text-[11px] text-slate-400 font-medium">{row.label}</span>
+                                            <span className="text-sm text-white font-bold tabular-nums">{row.value}</span>
+                                        </div>
+                                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div className={`h-full rounded-full bg-gradient-to-r ${row.color}`} style={{ width: `${row.bar}%` }} />
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                    <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">Total Opportunity</span>
+                                    <span className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-purple-400">$78K/yr</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* AI Visibility */}
+                {activeTab === 1 && (
+                    <div className="grid md:grid-cols-5 gap-0">
+                        <div className="md:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-5 shadow-lg shadow-cyan-500/20">
+                                <Eye className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">AI Visibility</h3>
+                            <p className="text-gray-500 mb-5 leading-relaxed">See if ChatGPT, Perplexity, and Claude can find and recommend you.</p>
+                            <div className="space-y-3">
+                                {['5 AI Platforms Tracked', 'Citation Analysis', 'Recommendation Scoring'].map(f => (
+                                    <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden min-h-[320px]">
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl" />
+                            <div className="relative">
+                                <p className="text-[10px] text-slate-500 font-semibold tracking-[2px] uppercase mb-5">AI Platform Visibility Map</p>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {[
+                                        { name: 'ChatGPT', score: 72, color: 'from-emerald-400 to-emerald-500', bg: 'bg-emerald-500/10' },
+                                        { name: 'Google AI', score: 85, color: 'from-blue-400 to-blue-500', bg: 'bg-blue-500/10' },
+                                        { name: 'Perplexity', score: 45, color: 'from-violet-400 to-purple-500', bg: 'bg-violet-500/10' },
+                                        { name: 'Bing Copilot', score: 63, color: 'from-cyan-400 to-sky-500', bg: 'bg-cyan-500/10' },
+                                        { name: 'Claude', score: 28, color: 'from-amber-400 to-orange-500', bg: 'bg-amber-500/10' },
+                                        { name: 'Gemini', score: 91, color: 'from-teal-400 to-emerald-500', bg: 'bg-teal-500/10' },
+                                    ].map(p => (
+                                        <div key={p.name} className={`rounded-xl p-4 ${p.bg} ring-1 ring-white/5 text-center`}>
+                                            <div className="text-2xl mb-1">
+                                                {p.name === 'ChatGPT' ? '🟢' : p.name === 'Google AI' ? '🔵' : p.name === 'Perplexity' ? '🟣' : p.name === 'Bing Copilot' ? '🔷' : p.name === 'Claude' ? '🟠' : '💎'}
+                                            </div>
+                                            <div className="text-[11px] text-slate-400 font-medium mb-2">{p.name}</div>
+                                            <div className={`text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r ${p.color}`}>{p.score}%</div>
+                                            <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full bg-gradient-to-r ${p.color}`} style={{ width: `${p.score}%` }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Competitive Radar */}
+                {activeTab === 2 && (
+                    <div className="grid md:grid-cols-5 gap-0">
+                        <div className="md:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-5 shadow-lg shadow-amber-500/20">
+                                <Target className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Competitive Radar</h3>
+                            <p className="text-gray-500 mb-5 leading-relaxed">Head-to-head comparison across 7 critical categories.</p>
+                            <div className="space-y-3">
+                                {['Category-by-Category Breakdown', 'Win/Loss Analysis', 'Gap Identification'].map(f => (
+                                    <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden min-h-[320px] flex items-center justify-center">
+                            <div className="absolute top-10 left-10 w-40 h-40 bg-amber-500/10 rounded-full blur-3xl" />
+                            <div className="relative w-full max-w-xs mx-auto">
+                                <svg viewBox="0 0 200 200" className="w-full">
+                                    {/* Radar grid */}
+                                    {[70, 50, 30].map(r => (
+                                        <polygon key={r} points={[0,1,2,3,4,5,6].map((_, i) => {
+                                            const angle = (Math.PI * 2 * i / 7) - Math.PI / 2;
+                                            return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
+                                        }).join(' ')} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" />
+                                    ))}
+                                    {/* Axis lines */}
+                                    {[0,1,2,3,4,5,6].map(i => {
+                                        const angle = (Math.PI * 2 * i / 7) - Math.PI / 2;
+                                        return <line key={i} x1="100" y1="100" x2={100 + 70 * Math.cos(angle)} y2={100 + 70 * Math.sin(angle)} stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />;
+                                    })}
+                                    {/* Your shape - teal */}
+                                    <polygon points={[49,89,44,28,89,84,71].map((v, i) => {
+                                        const angle = (Math.PI * 2 * i / 7) - Math.PI / 2;
+                                        const r = v / 100 * 70;
+                                        return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
+                                    }).join(' ')} fill="rgba(20,184,166,0.2)" stroke="#14b8a6" strokeWidth="2" />
+                                    {/* Competitor shape - orange */}
+                                    <polygon points={[71,79,70,26,88,85,73].map((v, i) => {
+                                        const angle = (Math.PI * 2 * i / 7) - Math.PI / 2;
+                                        const r = v / 100 * 70;
+                                        return `${100 + r * Math.cos(angle)},${100 + r * Math.sin(angle)}`;
+                                    }).join(' ')} fill="rgba(249,115,22,0.12)" stroke="#f97316" strokeWidth="1.5" strokeDasharray="4,3" />
+                                    {/* Labels */}
+                                    {['Tech SEO', 'On-Page', 'Authority', 'AEO', 'Brand', 'UX', 'Links'].map((label, i) => {
+                                        const angle = (Math.PI * 2 * i / 7) - Math.PI / 2;
+                                        const x = 100 + 88 * Math.cos(angle);
+                                        const y = 100 + 88 * Math.sin(angle);
+                                        return <text key={label} x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="fill-slate-500 text-[8px] font-medium">{label}</text>;
+                                    })}
+                                </svg>
+                                <div className="flex items-center justify-center gap-6 mt-2">
+                                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400"><span className="w-3 h-1.5 rounded-full bg-teal-400" /> You</span>
+                                    <span className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-400"><span className="w-3 h-1.5 rounded-full bg-orange-400" /> Competitor</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Industry Benchmarks */}
+                {activeTab === 3 && (
+                    <div className="grid md:grid-cols-5 gap-0">
+                        <div className="md:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/20">
+                                <BarChart3 className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Industry Benchmarks</h3>
+                            <p className="text-gray-500 mb-5 leading-relaxed">Know where you stand against industry leaders.</p>
+                            <div className="space-y-3">
+                                {['Percentile Ranking', 'Gap-to-Leader Analysis', 'Improvement Roadmap'].map(f => (
+                                    <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden min-h-[320px]">
+                            <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl" />
+                            <div className="relative">
+                                <p className="text-[10px] text-slate-500 font-semibold tracking-[2px] uppercase mb-5">Performance Benchmarks</p>
+                                <div className="space-y-5">
+                                    {[
+                                        { label: 'Your Score', value: 72, color: 'from-emerald-400 to-teal-400', textColor: 'text-emerald-400' },
+                                        { label: 'Industry Average', value: 58, color: 'from-slate-400 to-slate-500', textColor: 'text-slate-400' },
+                                        { label: 'Top 10%', value: 91, color: 'from-amber-400 to-orange-400', textColor: 'text-amber-400' },
+                                    ].map(b => (
+                                        <div key={b.label}>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-[11px] text-slate-400 font-medium">{b.label}</span>
+                                                <span className={`text-lg font-extrabold ${b.textColor}`}>{b.value}</span>
+                                            </div>
+                                            <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full bg-gradient-to-r ${b.color}`} style={{ width: `${b.value}%` }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-5 pt-4 border-t border-white/5 text-center">
+                                    <span className="text-[11px] text-slate-500">You rank in the </span>
+                                    <span className="text-emerald-400 font-bold text-sm">top 35%</span>
+                                    <span className="text-[11px] text-slate-500"> of analyzed sites</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Quick Wins */}
+                {activeTab === 4 && (
+                    <div className="grid md:grid-cols-5 gap-0">
+                        <div className="md:col-span-2 p-8 md:p-10 flex flex-col justify-center">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center mb-5 shadow-lg shadow-rose-500/20">
+                                <Zap className="w-6 h-6 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Quick Wins</h3>
+                            <p className="text-gray-500 mb-5 leading-relaxed">Prioritized action plan with immediate impact items.</p>
+                            <div className="space-y-3">
+                                {['30/60/90 Day Roadmap', 'Priority Ranked Actions', 'Time-to-Impact Estimates'].map(f => (
+                                    <div key={f} className="flex items-center gap-2 text-sm text-gray-600">
+                                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                        {f}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="md:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden min-h-[320px]">
+                            <div className="absolute top-0 left-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl" />
+                            <div className="relative">
+                                <p className="text-[10px] text-slate-500 font-semibold tracking-[2px] uppercase mb-4">Priority Action Items</p>
+                                <div className="space-y-3">
+                                    {[
+                                        { priority: 1, title: 'Add structured data markup', impact: 'Critical', time: '2 hours', color: 'bg-red-500/20 text-red-400 ring-red-500/30' },
+                                        { priority: 2, title: 'Fix mobile viewport issues', impact: 'High', time: '3 hours', color: 'bg-orange-500/20 text-orange-400 ring-orange-500/30' },
+                                        { priority: 3, title: 'Optimize meta descriptions', impact: 'High', time: '1 hour', color: 'bg-amber-500/20 text-amber-400 ring-amber-500/30' },
+                                        { priority: 4, title: 'Create FAQ schema for top pages', impact: 'Medium', time: '4 hours', color: 'bg-yellow-500/20 text-yellow-400 ring-yellow-500/30' },
+                                    ].map(item => (
+                                        <div key={item.priority} className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] ring-1 ring-white/5">
+                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                                {item.priority}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] text-slate-200 font-medium truncate">{item.title}</div>
+                                                <div className="text-[10px] text-slate-500 mt-0.5">Est. {item.time}</div>
+                                            </div>
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold ring-1 ${item.color} flex-shrink-0`}>
+                                                {item.impact}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function HomePage() {
     const [url, setUrl] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -207,137 +500,8 @@ export default function HomePage() {
                         </motion.p>
                     </motion.div>
 
-                    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {/* Featured card — Revenue Analysis with mini bar chart */}
-                        <motion.div variants={fadeUp} className="lg:col-span-2 bg-white rounded-2xl p-8 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="flex items-start justify-between mb-5">
-                                <div>
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-4 shadow-lg shadow-violet-500/20 group-hover:scale-110 transition-transform duration-300">
-                                        <TrendingUp className="w-7 h-7 text-white" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Revenue Analysis</h3>
-                                    <p className="text-gray-600 max-w-md">Calculate exactly how much you&apos;re losing to competitors and where to recover it.</p>
-                                </div>
-                                <span className="px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold uppercase tracking-wide ring-1 ring-violet-100">Popular</span>
-                            </div>
-                            {/* Micro-UI: Revenue bar chart */}
-                            <div className="bg-gray-50 rounded-xl p-4 ring-1 ring-gray-100 mb-5">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold text-gray-500">Monthly Lost Revenue</span>
-                                    <span className="text-xs font-bold text-red-500">-$24.8k/mo</span>
-                                </div>
-                                <div className="flex items-end gap-1.5 h-16">
-                                    {[35, 42, 38, 55, 48, 62, 58, 72, 68, 85, 78, 92].map((h, i) => (
-                                        <div key={i} className="flex-1 rounded-t-sm transition-all duration-500" style={{ height: `${h}%`, background: i >= 8 ? 'linear-gradient(to top, #8b5cf6, #6366f1)' : 'linear-gradient(to top, #e2e8f0, #cbd5e1)' }} />
-                                    ))}
-                                </div>
-                                <div className="flex justify-between mt-2 text-[10px] text-gray-400"><span>Jan</span><span>Jun</span><span>Dec</span></div>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {['Lost Revenue Calc', 'Traffic Recovery', 'ROI Projections'].map((item) => (
-                                    <span key={item} className="px-3 py-1.5 bg-gray-50 rounded-lg text-sm font-medium text-gray-600 ring-1 ring-gray-100">{item}</span>
-                                ))}
-                            </div>
-                        </motion.div>
-
-                        {/* AI Visibility — Chat bubble micro-UI */}
-                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <Eye className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">AI Visibility</h3>
-                            <p className="text-gray-600 text-sm mb-4">See if ChatGPT, Perplexity, and Claude can find you.</p>
-                            {/* Micro-UI: Chat bubble */}
-                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-2">
-                                <div className="flex items-start gap-2">
-                                    <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5"><span className="text-white text-[8px] font-bold">AI</span></div>
-                                    <div className="bg-white rounded-lg rounded-tl-none px-3 py-2 text-[11px] text-gray-600 ring-1 ring-gray-100">&quot;Based on my analysis, I&apos;d recommend <span className="font-bold text-blue-600">your brand</span> for...&quot;</div>
-                                </div>
-                                <div className="flex items-center gap-2 pl-7">
-                                    <div className="flex -space-x-1">
-                                        {['bg-emerald-500', 'bg-blue-500', 'bg-violet-500'].map((c, i) => (
-                                            <div key={i} className={`w-4 h-4 rounded-full ${c} ring-2 ring-white`} />
-                                        ))}
-                                    </div>
-                                    <span className="text-[10px] text-gray-400">3 of 6 AI engines cite you</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-cyan-600 mt-3">Track 6 AI Engines <ArrowRight className="w-3.5 h-3.5" /></div>
-                        </motion.div>
-
-                        {/* Competitive Radar — SVG radar micro-UI */}
-                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <Target className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Competitive Radar</h3>
-                            <p className="text-gray-600 text-sm mb-4">Head-to-head comparisons across 7 critical categories.</p>
-                            {/* Micro-UI: Radar chart */}
-                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 flex items-center justify-center">
-                                <svg viewBox="0 0 120 120" className="w-full h-24">
-                                    {/* Grid rings */}
-                                    {[20, 35, 50].map((r) => (<circle key={r} cx="60" cy="60" r={r} fill="none" stroke="#e5e7eb" strokeWidth="0.5" />))}
-                                    {/* You - blue polygon */}
-                                    <polygon points="60,20 95,40 90,75 60,95 30,75 25,40" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="1.5" />
-                                    {/* Competitor - orange polygon */}
-                                    <polygon points="60,30 85,35 98,65 60,85 35,70 20,45" fill="rgba(249,115,22,0.1)" stroke="#f97316" strokeWidth="1" strokeDasharray="3,2" />
-                                </svg>
-                            </div>
-                            <div className="flex items-center justify-center gap-4 mt-2">
-                                <span className="flex items-center gap-1 text-[10px] font-semibold"><span className="w-2 h-2 rounded-full bg-blue-500" /> You</span>
-                                <span className="flex items-center gap-1 text-[10px] font-semibold"><span className="w-2 h-2 rounded-full bg-orange-500" /> Competitor</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-amber-600 mt-3">Real-time Analysis <ArrowRight className="w-3.5 h-3.5" /></div>
-                        </motion.div>
-
-                        {/* Industry Benchmarks — mini bars */}
-                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <BarChart3 className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Industry Benchmarks</h3>
-                            <p className="text-gray-600 text-sm mb-4">Know where you stand against industry leaders.</p>
-                            {/* Micro-UI: Benchmark bars */}
-                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-2">
-                                {[
-                                    { label: 'You', value: 72, color: 'bg-emerald-500' },
-                                    { label: 'Industry Avg', value: 58, color: 'bg-gray-300' },
-                                    { label: 'Top 10%', value: 91, color: 'bg-teal-400' },
-                                ].map((b) => (
-                                    <div key={b.label}>
-                                        <div className="flex justify-between text-[10px] mb-0.5"><span className="text-gray-600 font-medium">{b.label}</span><span className="font-bold text-gray-800">{b.value}</span></div>
-                                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden"><div className={`h-full ${b.color} rounded-full`} style={{ width: `${b.value}%` }} /></div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-emerald-600 mt-3">10M+ Data Points <ArrowRight className="w-3.5 h-3.5" /></div>
-                        </motion.div>
-
-                        {/* Quick Wins — checklist micro-UI */}
-                        <motion.div variants={fadeUp} className="bg-white rounded-2xl p-6 ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center mb-4 shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <Zap className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Wins</h3>
-                            <p className="text-gray-600 text-sm mb-4">Prioritized action plan with immediate impact items.</p>
-                            {/* Micro-UI: Prioritized checklist */}
-                            <div className="bg-gray-50 rounded-xl p-3 ring-1 ring-gray-100 space-y-1.5">
-                                {[
-                                    { text: 'Add structured data markup', impact: 'High', color: 'text-red-500 bg-red-50' },
-                                    { text: 'Fix mobile viewport issues', impact: 'High', color: 'text-red-500 bg-red-50' },
-                                    { text: 'Optimize meta descriptions', impact: 'Med', color: 'text-amber-600 bg-amber-50' },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-[11px]">
-                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                                        <span className="text-gray-600 flex-1 truncate">{item.text}</span>
-                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${item.color}`}>{item.impact}</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-1 text-sm font-semibold text-rose-600 mt-3">30/60/90 Day Plan <ArrowRight className="w-3.5 h-3.5" /></div>
-                        </motion.div>
-                    </motion.div>
-                </div>
+                    <IntelligenceSuiteTabs />
+</div>
             </section>
 
             {/* ═══ SCORE SNAPSHOT — FIGHT CARD ═══ */}
@@ -431,9 +595,9 @@ export default function HomePage() {
 
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
                         {[
-                            { icon: Target, color: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/20', title: "Know Exactly Why You're Losing", description: 'See the specific gaps costing you rankings — and how to fix them in priority order.', highlight: 'Stop wasting time on the wrong things' },
-                            { icon: Zap, color: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-500/20', title: 'Outrank Competitors in 30 Days', description: 'Get a prioritized action plan showing the highest-impact wins. Most users see improvements within a month.', highlight: 'Real results, not just reports' },
-                            { icon: Sparkles, color: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20', title: 'Get Found by ChatGPT & AI Search', description: "SEO alone won't cut it anymore. Our AEO score shows if AI can actually find and recommend you.", highlight: 'Future-proof your visibility' },
+                            { icon: Target, color: 'from-blue-500 to-blue-600', shadow: 'shadow-blue-500/20', title: "Know Exactly Why You're Losing", description: 'See the specific gaps costing you rankings — prioritized by impact.', highlight: 'Learn more →' },
+                            { icon: Zap, color: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-500/20', title: 'Outrank Competitors in 30 Days', description: 'Get a phased action plan. Most users see improvements within a month.', highlight: 'Learn more →' },
+                            { icon: Sparkles, color: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20', title: 'Get Found by ChatGPT & AI Search', description: "SEO alone won't cut it. See if ChatGPT and Perplexity can find you.", highlight: 'Learn more →' },
                         ].map((benefit, index) => (
                             <motion.div key={index} variants={fadeUp} className="group relative bg-white p-8 rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className={`absolute top-0 left-8 right-8 h-1 rounded-b-full bg-gradient-to-r ${benefit.color}`} />
@@ -442,7 +606,7 @@ export default function HomePage() {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
                                 <p className="text-gray-500 mb-5 leading-relaxed">{benefit.description}</p>
-                                <div className="flex items-center gap-2 text-sm font-semibold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg w-fit ring-1 ring-emerald-100">
+                                <div className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 cursor-pointer transition-colors">
                                     <CheckCircle className="w-4 h-4" />
                                     {benefit.highlight}
                                 </div>
@@ -475,6 +639,7 @@ export default function HomePage() {
                         ].map((t, i) => (
                             <motion.div key={i} variants={fadeUp} className="bg-white p-8 rounded-2xl ring-1 ring-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                                 <div className={`absolute top-0 left-8 right-8 h-1 rounded-b-full bg-gradient-to-r ${t.gradient}`} />
+                                <div className="flex gap-0.5 mb-3">{[...Array(5)].map((_, si) => (<span key={si} className="text-amber-400 text-sm">★</span>))}</div>
                                 <p className="text-gray-600 leading-relaxed text-lg mb-6 italic">&quot;{t.quote}&quot;</p>
                                 <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
                                     <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-xs font-bold text-white`}>
@@ -584,6 +749,10 @@ export default function HomePage() {
                         <p className="mt-4 text-sm text-gray-400 flex items-center justify-center gap-2">
                             <Shield className="w-4 h-4 text-emerald-500" />
                             100% Free · No credit card required
+                        </p>
+                        <p className="mt-2 text-sm text-teal-500 font-semibold flex items-center justify-center gap-2">
+                            <Zap className="w-4 h-4" />
+                            Average analysis time: 60 seconds
                         </p>
                     </motion.div>
                 </div>
