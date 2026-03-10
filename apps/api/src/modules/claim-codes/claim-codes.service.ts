@@ -263,8 +263,9 @@ export class ClaimCodesService {
                     if (analysisRun) {
                         // Does this user already have a Lead?
                         let targetLeadId: string;
+                        const normalizedEmail = user.email.toLowerCase().trim();
                         const existingLead = await tx.lead.findUnique({
-                            where: { email: user.email },
+                            where: { email: normalizedEmail },
                         });
 
                         if (existingLead) {
@@ -280,7 +281,7 @@ export class ClaimCodesService {
                             // Create a new Lead owned by this user
                             const newLead = await tx.lead.create({
                                 data: {
-                                    email: user.email,
+                                    email: normalizedEmail,
                                     firstName: user.email.split('@')[0],
                                     lastName: '',
                                     phone: '',

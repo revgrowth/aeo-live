@@ -7,6 +7,7 @@ import {
     Brain, Fingerprint, Heart, Mic, Shield, Zap, Eye, Users,
     Volume2, Lightbulb, Quote, Star, Flame, Ghost, Copy, XCircle
 } from 'lucide-react';
+import { CategoryHeader } from './CategoryHeader';
 
 // ============================================
 // TYPES
@@ -1060,106 +1061,17 @@ export function BrandVoiceDetail({ yourData, competitorData, yourDomain, competi
 
     return (
         <div className="space-y-8">
-            {/* ============================================ */}
-            {/* HERO SECTION */}
-            {/* ============================================ */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6 md:p-10">
-                {/* Animated gradient orbs */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-violet-500/20 to-fuchsia-600/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-0 left-0 w-72 h-72 bg-gradient-to-br from-purple-500/20 to-pink-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-
-                <div className="relative z-10">
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-10">
-                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-violet-400 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-2xl shadow-violet-500/30">
-                            <MessageSquare className="w-7 h-7 md:w-8 md:h-8 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="text-2xl md:text-3xl font-black text-white">Brand Voice/DNA Analysis</h2>
-                            <p className="text-slate-400 text-sm md:text-base">Deep analysis of what makes your brand unique</p>
-                        </div>
-                    </div>
-
-                    {/* Score comparison */}
-                    <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12">
-                        {/* Your score */}
-                        <div className="flex flex-col items-center flex-shrink-0" style={{ width: '180px' }}>
-                            <div className="flex items-center justify-center" style={{ height: '160px' }}>
-                                <AnimatedScoreRing score={yourData.score} size={140} isYou={true} />
-                            </div>
-                            <div className="mt-4 text-center w-full">
-                                <p className="text-white font-bold text-sm leading-tight max-w-full overflow-hidden" style={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
-                                    wordBreak: 'break-word'
-                                }} title={yourDomain}>
-                                    {formatDomain(yourDomain)}
-                                </p>
-                                <p className="text-violet-400 text-sm font-medium mt-1">Your Voice Score</p>
-                            </div>
-                        </div>
-
-                        {/* VS badge */}
-                        <div className="flex flex-col items-center flex-shrink-0" style={{ width: '140px' }}>
-                            <div className="flex items-center justify-center" style={{ height: '160px' }}>
-                                <div className={`
-                                    flex flex-col items-center justify-center w-28 h-28 rounded-full
-                                    ${isWinning ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-2xl shadow-emerald-500/40' :
-                                        scoreDiff < 0 ? 'bg-gradient-to-br from-rose-500 to-red-600 shadow-2xl shadow-rose-500/40' :
-                                            'bg-gradient-to-br from-slate-500 to-slate-600 shadow-2xl shadow-slate-500/40'}
-                                `}>
-                                    <span className="text-white/80 text-[10px] font-semibold uppercase tracking-widest">Difference</span>
-                                    <span className="text-4xl font-black text-white">{scoreDiff > 0 ? '+' : ''}{scoreDiff}</span>
-                                </div>
-                            </div>
-                            <div className="mt-4 flex items-center justify-center gap-1.5 text-center">
-                                {isWinning ? (
-                                    <><Award className="w-4 h-4 text-emerald-400 flex-shrink-0" /><span className="text-emerald-400 font-bold text-sm">Stronger Voice!</span></>
-                                ) : scoreDiff < 0 ? (
-                                    <><Target className="w-4 h-4 text-amber-400 flex-shrink-0" /><span className="text-amber-400 font-bold text-sm">Room to Improve</span></>
-                                ) : (
-                                    <span className="text-slate-400 font-bold text-sm">Evenly Matched</span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Competitor score */}
-                        <div className="flex flex-col items-center flex-shrink-0" style={{ width: '180px' }}>
-                            <div className="flex items-center justify-center" style={{ height: '160px' }}>
-                                <AnimatedScoreRing score={competitorData.score} size={140} isYou={false} />
-                            </div>
-                            <div className="mt-4 text-center w-full">
-                                <p className="text-white font-bold text-sm leading-tight max-w-full overflow-hidden" style={{
-                                    display: '-webkit-box',
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: 'vertical',
-                                    wordBreak: 'break-word'
-                                }} title={competitorDomain}>
-                                    {formatDomain(competitorDomain)}
-                                </p>
-                                <p className="text-slate-400 text-sm font-medium mt-1">Competitor</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick stats */}
-                    <div className="grid grid-cols-3 gap-6 mt-10 pt-8 border-t border-white/10">
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-emerald-400">{wins}</div>
-                            <div className="text-sm text-slate-400 mt-1">Voice Categories Won</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-rose-400">{losses}</div>
-                            <div className="text-sm text-slate-400 mt-1">Voice Categories Lost</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-slate-300">{Object.keys(subcats).length - wins - losses}</div>
-                            <div className="text-sm text-slate-400 mt-1">Tied</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <CategoryHeader
+                icon={<Fingerprint />}
+                title="Brand Voice / DNA"
+                subtitle="Messaging clarity, tone, and differentiation"
+                badge="Voice Intelligence"
+                yourScore={yourData.score}
+                competitorScore={competitorData.score}
+                yourDomain={yourDomain}
+                competitorDomain={competitorDomain}
+                accentColor="pink"
+            />
 
             {/* ============================================ */}
             {/* EXECUTIVE SUMMARY */}

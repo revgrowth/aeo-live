@@ -71,6 +71,21 @@ export class AuthService {
         // Create verification token
         await this.createVerificationToken(user.id, 'EMAIL_VERIFICATION');
 
+        // P0 Fix: Link any pre-existing Leads to this new user.
+        // If user ran a free analysis before registering, their Lead
+        // exists with matching email but no userId.
+        try {
+            await this.prisma.lead.updateMany({
+                where: {
+                    email: { equals: user.email, mode: 'insensitive' },
+                    userId: null,
+                },
+                data: { userId: user.id },
+            });
+        } catch (err) {
+            this.logger.warn(`Failed to backfill Lead.userId on registration: ${err}`);
+        }
+
         // Auto-redeem claim code if provided
         if (dto.claimCode) {
             try {
@@ -109,6 +124,23 @@ export class AuthService {
             where: { id: user.id },
             data: { lastLoginAt: new Date() },
         });
+
+        // P0 Fix: Link any orphaned Leads to this user.
+        // Covers the case where a user ran a free analysis before registering —
+        // the Lead exists with matching email but no userId, so the dashboard
+        // query (which also checks lead.userId) can find it.
+        try {
+            await this.prisma.lead.updateMany({
+                where: {
+                    email: { equals: user.email, mode: 'insensitive' },
+                    userId: null,
+                },
+                data: { userId: user.id },
+            });
+        } catch (err) {
+            // Non-critical — don't fail login if backfill fails
+            this.logger.warn(`Failed to backfill Lead.userId on login: ${err}`);
+        }
 
         const tokens = await this.generateTokens(user.id);
 
@@ -335,6 +367,19 @@ export class AuthService {
             where: { id: user.id },
             data: { lastLoginAt: new Date() },
         });
+
+        // P0 Fix: Link any orphaned Leads to this user (same as email login)
+        try {
+            await this.prisma.lead.updateMany({
+                where: {
+                    email: { equals: user.email, mode: 'insensitive' },
+                    userId: null,
+                },
+                data: { userId: user.id },
+            });
+        } catch (err) {
+            this.logger.warn(`Failed to backfill Lead.userId on OAuth login: ${err}`);
+        }
 
         const tokens = await this.generateTokens(user.id);
 

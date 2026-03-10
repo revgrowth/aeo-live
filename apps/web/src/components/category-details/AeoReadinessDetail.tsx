@@ -9,6 +9,7 @@ import {
     HelpCircle, Quote, Activity, Signal, CheckCircle2, XCircle,
     Youtube, BookOpen, Star, Building2, Users, Shield
 } from 'lucide-react';
+import { CategoryHeader } from './CategoryHeader';
 
 // ============================================
 // TYPES
@@ -877,56 +878,17 @@ export function AeoReadinessDetail({ yourData, competitorData, yourDomain, compe
     return (
         <div className="space-y-6">
             {/* Hero Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-8">
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-white animate-pulse" style={{ animationDuration: '3s' }} />
-                    <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-white animate-pulse" style={{ animationDuration: '4s', animationDelay: '1s' }} />
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-white animate-pulse" style={{ animationDuration: '5s', animationDelay: '0.5s' }} />
-                </div>
-
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 text-emerald-100 mb-4">
-                        <Radar className="w-5 h-5" />
-                        <span className="text-sm font-semibold uppercase tracking-wider">AI Visibility Command Center</span>
-                    </div>
-
-                    <h1 className="text-3xl font-black text-white mb-2">
-                        AEO Readiness Analysis
-                    </h1>
-                    <p className="text-emerald-100 text-lg max-w-2xl">
-                        How visible is your content to AI assistants like ChatGPT, Perplexity, and Google AI?
-                        This analysis reveals your AI citability and platform presence.
-                    </p>
-
-                    {/* Score Comparison */}
-                    <div className="mt-8 flex items-center justify-center gap-8">
-                        <div className="text-center flex flex-col items-center">
-                            <AnimatedRadarRing score={yourData.score} size={140} isYou={true} />
-                            <p className="mt-3 text-sm text-emerald-100 font-medium truncate max-w-[140px]" title={formatDomain(yourDomain)}>
-                                {formatDomain(yourDomain)}
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col items-center justify-center min-w-[80px]">
-                            <div className={`text-4xl font-black ${isWinning ? 'text-white' : 'text-rose-300'}`}>
-                                {scoreDiff > 0 ? '+' : ''}{scoreDiff}
-                            </div>
-                            <div className={`mt-2 px-4 py-2 rounded-full text-sm font-bold ${isWinning ? 'bg-white/20 text-white' : scoreDiff < 0 ? 'bg-rose-500/30 text-rose-100' : 'bg-white/10 text-white'
-                                }`}>
-                                {isWinning ? '🎯 WINNING' : scoreDiff < 0 ? '⚠️ LOSING' : '⚖️ TIED'}
-                            </div>
-                        </div>
-
-                        <div className="text-center flex flex-col items-center">
-                            <AnimatedRadarRing score={competitorData.score} size={140} isYou={false} />
-                            <p className="mt-3 text-sm text-emerald-100 font-medium truncate max-w-[140px]" title={formatDomain(competitorDomain)}>
-                                {formatDomain(competitorDomain)}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <CategoryHeader
+                icon={<Radar />}
+                title="AEO Readiness"
+                subtitle="AI engine visibility and citation readiness"
+                badge="AI Visibility Command Center"
+                yourScore={yourData.score}
+                competitorScore={competitorData.score}
+                yourDomain={yourDomain}
+                competitorDomain={competitorDomain}
+                accentColor="teal"
+            />
 
             {/* Platform Presence Matrix */}
             <PlatformPresencePanel

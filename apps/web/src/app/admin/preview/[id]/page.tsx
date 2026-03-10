@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { IntelligenceReport } from '@/components/intelligence-report';
+import { GamePlanDetail } from '@/components/category-details/GamePlanDetail';
 import { TechnicalSeoDetail } from '@/components/category-details/TechnicalSeoDetail';
 import { BrandVoiceDetail } from '@/components/category-details/BrandVoiceDetail';
 import { AeoReadinessDetail } from '@/components/category-details/AeoReadinessDetail';
@@ -20,6 +21,7 @@ import { UxEngagementDetail } from '@/components/category-details/UxEngagementDe
 import { OnPageSeoDetail } from '@/components/category-details/OnPageSeoDetail';
 import TopicalAuthorityDetail from '@/components/category-details/TopicalAuthorityDetail';
 import { RefreshReportModal } from '@/components/RefreshReportModal';
+import { CategoryHeader } from '@/components/category-details/CategoryHeader';
 
 // Types
 interface Subcategory { score: number; weight: number; evidence: string[]; issues: string[]; }
@@ -131,8 +133,8 @@ function RevenueCalculator({ report }: { report: ReportData }) {
     return (
         <div className="space-y-6">
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">Revenue Opportunity Calculator</h1>
-                <p className="text-slate-500">See the financial impact of closing competitive gaps</p>
+                <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">Revenue Bleed Calculator</h1>
+                <p className="text-slate-500">See how much your competitive gaps are costing you</p>
             </div>
 
             {/* Input Controls */}
@@ -180,11 +182,11 @@ function RevenueCalculator({ report }: { report: ReportData }) {
                     </div>
                     <div className="text-center p-4 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
                         <div className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">${yearlyRevenueLost.toLocaleString()}</div>
-                        <div className="text-xs text-emerald-300 mt-1 font-semibold">YEARLY REVENUE OPPORTUNITY</div>
+                        <div className="text-xs text-emerald-300 mt-1 font-semibold">ESTIMATED ANNUAL LOSS</div>
                     </div>
                 </div>
                 <div className="text-center text-sm text-slate-400">
-                    Based on a <span className="text-rose-400 font-bold">{scoreDiff > 0 ? scoreDiff : 0} point</span> competitive gap = <span className="text-amber-400 font-bold">{opportunityPercent.toFixed(1)}%</span> potential traffic improvement
+                    Based on a <span className="text-rose-400 font-bold">{scoreDiff > 0 ? scoreDiff : 0} point</span> competitive gap = <span className="text-amber-400 font-bold">{opportunityPercent.toFixed(1)}%</span> traffic you&apos;re losing right now
                 </div>
             </div>
         </div>
@@ -577,155 +579,18 @@ export default function AdminPreviewPage() {
                 <main className="flex-1 p-6">
                     {activeTab === 'summary' && (
                         <div className="space-y-8">
-                            {/* ========== HERO HEADER - Brand vs Brand ========== */}
-                            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl">
-                                {/* Animated background effects */}
-                                <div className="absolute inset-0 overflow-hidden">
-                                    <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-full blur-3xl animate-pulse" />
-                                    <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-sky-500/10 to-blue-500/10 rounded-full blur-3xl" />
-                                </div>
+                            <CategoryHeader
+                                icon={<Sparkles />}
+                                title="Executive Summary"
+                                subtitle="Complete competitive intelligence overview"
+                                yourScore={report.yourScore}
+                                competitorScore={report.competitorScore}
+                                yourDomain={report.yourUrl}
+                                competitorDomain={report.competitorUrl}
+                                accentColor="violet"
+                            />
 
-                                {/* Content */}
-                                <div className="relative z-10">
-                                    {/* Title */}
-                                    <div className="text-center mb-8">
-                                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-4">
-                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Live Competitive Intelligence</span>
-                                        </div>
-                                        <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-2">
-                                            Competitive Analysis Report
-                                        </h1>
-                                        <p className="text-slate-400 text-lg">Real-time analysis • AI-powered insights • Actionable recommendations</p>
-                                    </div>
 
-                                    {/* ========== BRAND vs BRAND SHOWDOWN ========== */}
-                                    <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16">
-                                        {/* YOUR BRAND */}
-                                        <div className="flex-1 max-w-sm text-center">
-                                            <div className="relative inline-block mb-4">
-                                                {/* Animated ring */}
-                                                <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 160 160">
-                                                    <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="12" />
-                                                    <circle
-                                                        cx="80" cy="80" r="70" fill="none"
-                                                        stroke="url(#yourGradient)" strokeWidth="12"
-                                                        strokeLinecap="round"
-                                                        strokeDasharray={`${report.yourScore * 4.4} 440`}
-                                                        className="transition-all duration-1000 ease-out"
-                                                        style={{ filter: 'drop-shadow(0 0 12px rgba(16, 185, 129, 0.5))' }}
-                                                    />
-                                                    <defs>
-                                                        <linearGradient id="yourGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                            <stop offset="0%" stopColor="#10b981" />
-                                                            <stop offset="100%" stopColor="#14b8a6" />
-                                                        </linearGradient>
-                                                    </defs>
-                                                </svg>
-                                                {/* Score in center */}
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className="text-5xl font-black text-white">{report.yourScore}</span>
-                                                    <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Score</span>
-                                                </div>
-                                            </div>
-                                            {/* Brand name */}
-                                            <div className="space-y-2">
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                                                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                                                    <span className="text-sm font-bold text-emerald-400">YOUR BRAND</span>
-                                                </div>
-                                                <h2 className="text-2xl font-black text-white truncate px-4">
-                                                    {report.businessProfile?.name || new URL(report.yourUrl).hostname.replace('www.', '')}
-                                                </h2>
-                                                <p className="text-sm text-slate-400 truncate">{report.yourUrl.replace(/^https?:\/\//, '').replace('www.', '')}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* VS Badge */}
-                                        <div className="relative flex-shrink-0">
-                                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-purple-500/30 animate-pulse">
-                                                <span className="text-3xl font-black text-white">VS</span>
-                                            </div>
-                                            {/* Decorative rings */}
-                                            <div className="absolute inset-0 w-24 h-24 rounded-full border-2 border-white/20 animate-ping" style={{ animationDuration: '2s' }} />
-                                            {/* Score difference badge */}
-                                            <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full font-bold text-sm shadow-lg ${scoreDiff > 0 ? 'bg-emerald-500 text-white' : scoreDiff < 0 ? 'bg-rose-500 text-white' : 'bg-slate-500 text-white'
-                                                }`}>
-                                                {scoreDiff > 0 ? '+' : ''}{scoreDiff} pts
-                                            </div>
-                                        </div>
-
-                                        {/* COMPETITOR BRAND */}
-                                        <div className="flex-1 max-w-sm text-center">
-                                            <div className="relative inline-block mb-4">
-                                                {/* Animated ring */}
-                                                <svg className="w-40 h-40 transform -rotate-90" viewBox="0 0 160 160">
-                                                    <circle cx="80" cy="80" r="70" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="12" />
-                                                    <circle
-                                                        cx="80" cy="80" r="70" fill="none"
-                                                        stroke="url(#competitorGradient)" strokeWidth="12"
-                                                        strokeLinecap="round"
-                                                        strokeDasharray={`${report.competitorScore * 4.4} 440`}
-                                                        className="transition-all duration-1000 ease-out"
-                                                        style={{ filter: 'drop-shadow(0 0 12px rgba(239, 68, 68, 0.5))' }}
-                                                    />
-                                                    <defs>
-                                                        <linearGradient id="competitorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                            <stop offset="0%" stopColor="#f43f5e" />
-                                                            <stop offset="100%" stopColor="#ef4444" />
-                                                        </linearGradient>
-                                                    </defs>
-                                                </svg>
-                                                {/* Score in center */}
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className="text-5xl font-black text-white">{report.competitorScore}</span>
-                                                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Score</span>
-                                                </div>
-                                            </div>
-                                            {/* Brand name */}
-                                            <div className="space-y-2">
-                                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-500/20 border border-slate-500/30">
-                                                    <Target className="w-4 h-4 text-slate-400" />
-                                                    <span className="text-sm font-bold text-slate-400">COMPETITOR</span>
-                                                </div>
-                                                <h2 className="text-2xl font-black text-slate-300 truncate px-4">
-                                                    {new URL(report.competitorUrl).hostname.replace('www.', '')}
-                                                </h2>
-                                                <p className="text-sm text-slate-500 truncate">{report.competitorUrl.replace(/^https?:\/\//, '').replace('www.', '')}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Status Banner */}
-                                    <div className="mt-8 text-center">
-                                        <div className={`inline-flex items-center gap-3 px-6 py-3 rounded-2xl backdrop-blur-sm border ${isWinning
-                                            ? 'bg-emerald-500/20 border-emerald-500/30'
-                                            : scoreDiff < 0
-                                                ? 'bg-rose-500/20 border-rose-500/30'
-                                                : 'bg-slate-500/20 border-slate-500/30'
-                                            }`}>
-                                            {isWinning ? (
-                                                <>
-                                                    <Rocket className="w-6 h-6 text-emerald-400" />
-                                                    <span className="text-lg font-bold text-emerald-400">You're Leading the Competition!</span>
-                                                    <Star className="w-5 h-5 text-amber-400" />
-                                                </>
-                                            ) : scoreDiff < 0 ? (
-                                                <>
-                                                    <Flame className="w-6 h-6 text-rose-400" />
-                                                    <span className="text-lg font-bold text-rose-400">Competitor is Ahead — Time to Fight Back!</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Sparkles className="w-6 h-6 text-amber-400" />
-                                                    <span className="text-lg font-bold text-amber-400">It's a Tie — Break Away!</span>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* ========== CATEGORY BREAKDOWN SECTION ========== */}
                             <div>
@@ -968,23 +833,24 @@ export default function AdminPreviewPage() {
                         )
                     )}
 
-                    {activeTab === 'revenue' && <RevenueCalculator report={report} />}
+                    {activeTab === 'revenue' && (
+                        <div className="space-y-6">
+                            <CategoryHeader
+                                icon={<DollarSign />}
+                                title="Revenue Calculator"
+                                subtitle="Projected revenue impact from SEO improvements"
+                                yourScore={report.yourScore}
+                                competitorScore={report.competitorScore}
+                                yourDomain={report.yourUrl}
+                                competitorDomain={report.competitorUrl}
+                                accentColor="emerald"
+                            />
+                            <RevenueCalculator report={report} />
+                        </div>
+                    )}
 
                     {activeTab === 'gameplan' && (
-                        <div className="space-y-6">
-                            <h1 className="text-3xl font-black text-slate-900">Strategic Game Plan</h1>
-                            {report.recommendations?.map((rec, i) => (
-                                <div key={i} className={`p-5 rounded-xl border ${rec.priority === 'high' ? 'bg-rose-50 border-rose-200' : rec.priority === 'medium' ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                                    <div className="flex items-start gap-4">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${rec.priority === 'high' ? 'bg-rose-500' : rec.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`}>
-                                            {rec.priority === 'high' ? <Flame className="w-5 h-5 text-white" /> : rec.priority === 'medium' ? <Zap className="w-5 h-5 text-white" /> : <Rocket className="w-5 h-5 text-white" />}
-                                        </div>
-                                        <div><h3 className="font-bold text-slate-900">{rec.title}</h3><p className="text-sm text-slate-600">{rec.description}</p><p className="text-sm text-emerald-600 font-semibold mt-1">Impact: {rec.impact}</p></div>
-                                    </div>
-                                </div>
-                            ))}
-                            {report.intelligenceReport && <IntelligenceReport data={report.intelligenceReport} yourDomain={report.yourUrl.replace(/^https?:\/\//, '')} competitorDomain={report.competitorUrl.replace(/^https?:\/\//, '')} />}
-                        </div>
+                        <GamePlanDetail report={report} onNavigateToTab={setActiveTab} />
                     )}
                 </main>
             </div>

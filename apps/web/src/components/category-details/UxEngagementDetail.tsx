@@ -8,6 +8,7 @@ import {
     Users, Clock, BarChart3, Layers, Hand, MonitorSmartphone,
     Navigation, FormInput, Image, Grip, ExternalLink
 } from 'lucide-react';
+import { CategoryHeader } from './CategoryHeader';
 
 interface SubcategoryScore {
     score: number;
@@ -756,32 +757,17 @@ export function UxEngagementDetail({
     return (
         <div className="space-y-6">
             {/* Section Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <ConversionRing score={yourData.score} size={100} />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h2 className="text-2xl font-bold text-slate-900">UX & Engagement</h2>
-                            <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">
-                                The Conversion Lab
-                            </span>
-                        </div>
-                        <p className="text-slate-600">CRO intelligence for maximum conversions</p>
-                    </div>
-                </div>
-
-                {/* Competitor comparison mini */}
-                <div className="text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                        <span className="text-3xl font-bold text-slate-900">{yourData.score}</span>
-                        <span className="text-slate-400">vs</span>
-                        <span className="text-2xl font-semibold text-slate-500">{competitorData.score}</span>
-                    </div>
-                    <ComparisonBadge yourScore={yourData.score} competitorScore={competitorData.score} />
-                </div>
-            </div>
+            <CategoryHeader
+                icon={<Layout />}
+                title="UX & Engagement"
+                subtitle="CRO intelligence for maximum conversions"
+                badge="The Conversion Lab"
+                yourScore={yourData.score}
+                competitorScore={competitorData.score}
+                yourDomain={yourDomain}
+                competitorDomain={competitorDomain}
+                accentColor="indigo"
+            />
 
             {/* Screenshot Comparison Hero */}
             <ScreenshotComparisonHero

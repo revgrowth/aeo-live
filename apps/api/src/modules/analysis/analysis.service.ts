@@ -73,12 +73,14 @@ export class AnalysisService {
         const token = randomBytes(32).toString('hex');
 
         // Save lead to database (upsert by email)
+        // CRITICAL: Normalize email to lowercase to match User.email (which is always lowered at registration)
+        const normalizedEmail = dto.email.toLowerCase().trim();
         let leadId: string | undefined;
         let analysisRunId: string | undefined;
 
         try {
             const lead = await this.prisma.lead.upsert({
-                where: { email: dto.email },
+                where: { email: normalizedEmail },
                 update: {
                     firstName: dto.firstName,
                     lastName: dto.lastName,
@@ -90,7 +92,7 @@ export class AnalysisService {
                 create: {
                     firstName: dto.firstName,
                     lastName: dto.lastName,
-                    email: dto.email,
+                    email: normalizedEmail,
                     phone: dto.phone,
                     businessName: dto.businessName,
                     businessUrl: normalizedUrl,
@@ -132,7 +134,7 @@ export class AnalysisService {
             analysisRunId,
             firstName: dto.firstName,
             lastName: dto.lastName,
-            email: dto.email,
+            email: normalizedEmail,
             phone: dto.phone,
             businessName: dto.businessName,
             // Cost tracking

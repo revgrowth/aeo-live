@@ -2096,3 +2096,53 @@
     box-shadow: 0 12px 24px -8px rgba(14,165,233,0.1);
   }
 }
+
+/* ═══════════════════════════════════
+   REPORT PREVIEW SHOWCASE
+   ═══════════════════════════════════ */
+
+/* Floating badge animation */
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-badge-float {
+  animation: badge-float 3s ease-in-out infinite;
+}
+
+/* Revenue metric grid */
+.revenue-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* Brand DNA label width */
+.brand-dna-label {
+  width: 72px;
+  flex-shrink: 0;
+}
+
+/* ── Mobile: < 768px ── */
+@media (max-width: 767px) {
+  /* Hide floating badges on mobile */
+  .showcase-floating-badge {
+    display: none !important;
+  }
+
+  /* Revenue grid → 2x2 */
+  .revenue-metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Narrower brand DNA labels */
+  .brand-dna-label {
+    width: 50px;
+  }
+
+  /* Scorecard slide: smaller gauges handled via Tailwind responsive */
+  .scorecard-slide .flex.gap-9 {
+    gap: 16px;
+  }
+}

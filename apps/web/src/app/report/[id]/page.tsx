@@ -19,7 +19,9 @@ import { AeoReadinessDetail } from '@/components/category-details/AeoReadinessDe
 import { UxEngagementDetail } from '@/components/category-details/UxEngagementDetail';
 import { OnPageSeoDetail } from '@/components/category-details/OnPageSeoDetail';
 import TopicalAuthorityDetail from '@/components/category-details/TopicalAuthorityDetail';
+import { GamePlanDetail } from '@/components/category-details/GamePlanDetail';
 import { RefreshReportModal } from '@/components/RefreshReportModal';
+import { CategoryHeader } from '@/components/category-details/CategoryHeader';
 import Link from 'next/link';
 import {
     ArrowLeft, Download, Trophy, TrendingUp, TrendingDown,
@@ -247,8 +249,8 @@ function RevenueCalculator({ report }: { report: ReportData }) {
     return (
         <div className="space-y-6">
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">Revenue Opportunity Calculator</h1>
-                <p className="text-slate-500">See the financial impact of closing competitive gaps</p>
+                <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">Revenue Bleed Calculator</h1>
+                <p className="text-slate-500">See how much your competitive gaps are costing you</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
@@ -294,11 +296,11 @@ function RevenueCalculator({ report }: { report: ReportData }) {
                     </div>
                     <div className="text-center p-4 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
                         <div className="text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">${yearlyRevenueLost.toLocaleString()}</div>
-                        <div className="text-xs text-emerald-300 mt-1 font-semibold">YEARLY REVENUE OPPORTUNITY</div>
+                        <div className="text-xs text-emerald-300 mt-1 font-semibold">ESTIMATED ANNUAL LOSS</div>
                     </div>
                 </div>
                 <div className="text-center text-sm text-slate-400">
-                    Based on a <span className="text-rose-400 font-bold">{scoreDiff > 0 ? scoreDiff : 0} point</span> competitive gap = <span className="text-amber-400 font-bold">{opportunityPercent.toFixed(1)}%</span> potential traffic improvement
+                    Based on a <span className="text-rose-400 font-bold">{scoreDiff > 0 ? scoreDiff : 0} point</span> competitive gap = <span className="text-amber-400 font-bold">{opportunityPercent.toFixed(1)}%</span> traffic you&apos;re losing right now
                 </div>
             </div>
         </div>
@@ -442,174 +444,17 @@ function OverviewContent({
 
     return (
         <div className="space-y-8">
-            {/* ===== HERO SCORE BATTLE SECTION ===== */}
-            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 md:p-12">
-                {/* Background decorative elements */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-sky-500/10 to-transparent rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-indigo-500/10 to-transparent rounded-full blur-3xl" />
-
-                {/* Content */}
-                <div className="relative z-10">
-                    {/* Battle Title */}
-                    <div className="text-center mb-10">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 text-white/60 text-sm mb-4">
-                            <Sparkles className="w-4 h-4 text-amber-400" />
-                            Competitive Intelligence Analysis
-                        </div>
-                        <h2 className="text-3xl md:text-4xl font-black text-white">
-                            {yourDomain} <span className="text-slate-500">vs</span> {competitorDomain}
-                        </h2>
-                    </div>
-
-                    {/* Score Battle */}
-                    <div className="flex items-center justify-center gap-6 md:gap-16">
-                        {/* Your Score */}
-                        <div className="text-center">
-                            <div className="relative w-32 h-32 md:w-44 md:h-44 mx-auto mb-4">
-                                {/* Outer glow ring */}
-                                <div className={`absolute inset-0 rounded-full ${isWinning ? 'bg-emerald-500/20' : 'bg-sky-500/20'} blur-xl animate-pulse`} />
-
-                                {/* Score ring */}
-                                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                                    <circle
-                                        cx="60" cy="60" r="52"
-                                        fill="none"
-                                        stroke="rgba(255,255,255,0.1)"
-                                        strokeWidth="8"
-                                    />
-                                    <circle
-                                        cx="60" cy="60" r="52"
-                                        fill="none"
-                                        stroke={isWinning ? "url(#greenGrad)" : "url(#blueGrad)"}
-                                        strokeWidth="8"
-                                        strokeLinecap="round"
-                                        strokeDasharray={`${2 * Math.PI * 52}`}
-                                        strokeDashoffset={`${2 * Math.PI * 52 * (1 - report.yourScore / 100)}`}
-                                        style={{ transition: 'stroke-dashoffset 1.5s ease-out' }}
-                                    />
-                                    <defs>
-                                        <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#10b981" />
-                                            <stop offset="100%" stopColor="#34d399" />
-                                        </linearGradient>
-                                        <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#0ea5e9" />
-                                            <stop offset="100%" stopColor="#38bdf8" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-
-                                {/* Center score */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className={`text-4xl md:text-6xl font-black ${isWinning ? 'text-emerald-400' : 'text-sky-400'}`}>
-                                        {Math.round(report.yourScore)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="text-white font-bold text-lg">{yourDomain}</div>
-                            <div className="text-white/50 text-sm flex items-center justify-center gap-2 mt-1">
-                                {isWinning ? (
-                                    <>
-                                        <Trophy className="w-4 h-4 text-amber-400" />
-                                        <span className="text-emerald-400">Leading</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Target className="w-4 h-4 text-sky-400" />
-                                        <span className="text-sky-400">Your Brand</span>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* VS Badge with Delta */}
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border-2 border-white/10 flex items-center justify-center shadow-2xl">
-                                <span className="text-xl md:text-2xl font-black text-white/70">VS</span>
-                            </div>
-                            <div className={`px-4 py-2 rounded-full font-bold text-lg ${isWinning
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                }`}>
-                                {isWinning ? '+' : ''}{Math.round(scoreDiff)}
-                            </div>
-                        </div>
-
-                        {/* Competitor Score */}
-                        <div className="text-center">
-                            <div className="relative w-32 h-32 md:w-44 md:h-44 mx-auto mb-4">
-                                {/* Outer glow ring */}
-                                <div className={`absolute inset-0 rounded-full ${!isWinning ? 'bg-rose-500/20' : 'bg-slate-500/10'} blur-xl`} />
-
-                                {/* Score ring */}
-                                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                                    <circle
-                                        cx="60" cy="60" r="52"
-                                        fill="none"
-                                        stroke="rgba(255,255,255,0.1)"
-                                        strokeWidth="8"
-                                    />
-                                    <circle
-                                        cx="60" cy="60" r="52"
-                                        fill="none"
-                                        stroke={!isWinning ? "url(#roseGrad)" : "url(#slateGrad)"}
-                                        strokeWidth="8"
-                                        strokeLinecap="round"
-                                        strokeDasharray={`${2 * Math.PI * 52}`}
-                                        strokeDashoffset={`${2 * Math.PI * 52 * (1 - report.competitorScore / 100)}`}
-                                        style={{ transition: 'stroke-dashoffset 1.5s ease-out' }}
-                                    />
-                                    <defs>
-                                        <linearGradient id="roseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#f43f5e" />
-                                            <stop offset="100%" stopColor="#fb7185" />
-                                        </linearGradient>
-                                        <linearGradient id="slateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#64748b" />
-                                            <stop offset="100%" stopColor="#94a3b8" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-
-                                {/* Center score */}
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className={`text-4xl md:text-6xl font-black ${!isWinning ? 'text-rose-400' : 'text-slate-400'}`}>
-                                        {Math.round(report.competitorScore)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="text-white font-bold text-lg">{competitorDomain}</div>
-                            <div className="text-white/50 text-sm flex items-center justify-center gap-2 mt-1">
-                                {!isWinning ? (
-                                    <>
-                                        <Trophy className="w-4 h-4 text-amber-400" />
-                                        <span className="text-rose-400">Leading</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Target className="w-4 h-4 text-slate-400" />
-                                        <span className="text-slate-400">Competitor</span>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Category Win/Loss Summary */}
-                    <div className="flex justify-center gap-6 mt-10">
-                        <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                            <CheckCircle className="w-5 h-5 text-emerald-400" />
-                            <span className="text-emerald-400 font-bold">{winningCategories.length}</span>
-                            <span className="text-white/60 text-sm">categories winning</span>
-                        </div>
-                        <div className="flex items-center gap-3 px-5 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                            <AlertCircle className="w-5 h-5 text-rose-400" />
-                            <span className="text-rose-400 font-bold">{losingCategories.length}</span>
-                            <span className="text-white/60 text-sm">need attention</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* ===== HERO SCORE BATTLE SECTION - CategoryHeader ===== */}
+            <CategoryHeader
+                icon={<Sparkles />}
+                title="Executive Summary"
+                subtitle="Complete competitive intelligence overview"
+                yourScore={report.yourScore}
+                competitorScore={report.competitorScore}
+                yourDomain={yourDomain}
+                competitorDomain={competitorDomain}
+                accentColor="violet"
+            />
 
             {/* ===== CATEGORY SCORE BREAKDOWN ===== */}
             <section>
@@ -1241,10 +1086,7 @@ export default function ReportPage() {
             case 'revenue':
                 return <RevenueCalculator report={report} />;
             case 'gameplan':
-                if (intelligenceReport) {
-                    return <IntelligenceReport data={intelligenceReport} yourDomain={yourDomain} competitorDomain={competitorDomain} />;
-                }
-                return <NoDataMessage section="Game Plan" />;
+                return <GamePlanDetail report={report} onNavigateToTab={(tab) => setActiveCategory(tab as NavCategory)} />;
             default:
                 return null;
         }

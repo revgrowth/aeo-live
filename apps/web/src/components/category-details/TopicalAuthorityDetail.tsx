@@ -8,6 +8,7 @@ import {
     Users, Building2, MapPin, Lightbulb, Package, Zap,
     BarChart3, PieChart, Search, ArrowRight, Star
 } from 'lucide-react';
+import { CategoryHeader } from './CategoryHeader';
 
 // ============================================
 // TYPES
@@ -1350,50 +1351,17 @@ export default function TopicalAuthorityDetail({
     return (
         <div className="space-y-8">
             {/* Hero Section */}
-            <div className="bg-gradient-to-br from-teal-50 via-cyan-50 to-emerald-50 rounded-3xl p-8 border border-teal-200 shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-500 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                    <h2 className="text-xl font-black text-slate-900">TOPICAL AUTHORITY LAB</h2>
-                </div>
-                <p className="text-slate-600 mb-6 max-w-2xl">
-                    Deep analysis of entity coverage, topic depth, and authority signals.
-                    Understand exactly where you need to build content to dominate your niche.
-                </p>
-
-                {/* Score Comparison */}
-                <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-16">
-                    <div className="text-center">
-                        <AnimatedAuthorityRing score={yourScore} isYou={true} />
-                        <div className="mt-3">
-                            <div className="font-bold text-slate-900">{formatDomain(yourDomain)}</div>
-                            {yourData.authorityLevel && (
-                                <div className="mt-2">
-                                    <AuthorityLevelBadge level={yourData.authorityLevel} />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                        <ComparisonBadge diff={diff} />
-                        <div className="text-xs text-slate-500 font-medium">AUTHORITY GAP</div>
-                    </div>
-
-                    <div className="text-center">
-                        <AnimatedAuthorityRing score={compScore} isYou={false} />
-                        <div className="mt-3">
-                            <div className="font-bold text-slate-900">{formatDomain(competitorDomain)}</div>
-                            {competitorData.authorityLevel && (
-                                <div className="mt-2">
-                                    <AuthorityLevelBadge level={competitorData.authorityLevel} />
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <CategoryHeader
+                icon={<Brain />}
+                title="Topical Authority"
+                subtitle="Entity coverage, topic depth, and authority signals"
+                badge="Topical Authority Lab"
+                yourScore={yourScore}
+                competitorScore={compScore}
+                yourDomain={yourDomain}
+                competitorDomain={competitorDomain}
+                accentColor="cyan"
+            />
 
             {/* Entity Intelligence */}
             <EntityIntelligencePanel

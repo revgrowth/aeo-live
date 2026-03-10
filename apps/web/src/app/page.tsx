@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import DashboardHeroPreview from '@/components/DashboardHeroPreview';
+import ReportPreviewShowcase from '@/components/ReportPreviewShowcase';
 import {
     ArrowRight, Target, Sparkles,
     TrendingUp, CheckCircle, Globe, Loader2, Crosshair,
@@ -120,7 +120,7 @@ export default function HomePage() {
                         {/* Headline — HUGE */}
                         <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[0.95]">
                             Outsmart Your{' '}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c3aed] via-[#14b8a6] to-[#22c55e]">
                                 Competition
                             </span>
                         </motion.h1>
@@ -170,24 +170,21 @@ export default function HomePage() {
                         {/* Trust row */}
                         <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-6 mb-16">
                             {[
-                                { icon: CheckCircle, text: 'No credit card required' },
-                                { icon: Zap, text: '60-second results' },
-                                { icon: Shield, text: 'Enterprise-grade security' },
+                                { icon: '✅', text: 'No credit card required' },
+                                { icon: '⚡', text: '60-second results' },
+                                { icon: '🔒', text: 'Enterprise-grade security' },
+                                { icon: '📊', text: '7 intelligence categories' },
                             ].map((item) => (
                                 <span key={item.text} className="flex items-center gap-2 text-sm text-slate-500">
-                                    <item.icon className="w-4 h-4 text-emerald-500" />
+                                    <span>{item.icon}</span>
                                     {item.text}
                                 </span>
                             ))}
                         </motion.div>
 
-                        {/* ═══ 3D TILTED DASHBOARD — LIVE UI ═══ */}
-                        <motion.div variants={fadeUp} className="relative mx-auto mt-4 w-full max-w-5xl" style={{ perspective: '1000px' }}>
-                            <div className="rounded-xl border border-slate-200 bg-white shadow-2xl shadow-indigo-200/50 overflow-hidden pointer-events-none" style={{ transform: 'rotateX(12deg)', transformOrigin: 'center bottom' }}>
-                                {/* Glass reflection */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent pointer-events-none z-10" />
-                                <DashboardHeroPreview />
-                            </div>
+                        {/* ═══ ROTATING REPORT PREVIEW SHOWCASE ═══ */}
+                        <motion.div variants={fadeUp} className="relative mx-auto mt-4 w-full max-w-5xl">
+                            <ReportPreviewShowcase />
                         </motion.div>
                     </motion.div>
                 </div>

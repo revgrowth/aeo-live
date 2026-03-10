@@ -9,6 +9,7 @@ import {
     MousePointer, ArrowRight, Lightbulb, TrendingDown, Award,
     AlertCircle, ExternalLink, Copy
 } from 'lucide-react';
+import { CategoryHeader } from './CategoryHeader';
 
 interface SubcategoryScore {
     score: number;
@@ -1275,36 +1276,16 @@ export function OnPageSeoDetail({
     return (
         <div className="space-y-6">
             {/* Section Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <SeoScoreGauge score={yourData.score} size={100} />
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <h2 className="text-2xl font-bold text-slate-900">On-Page SEO</h2>
-                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                                Keyword Intelligence
-                            </span>
-                        </div>
-                        <p className="text-slate-600">Title tags, meta descriptions, and page structure</p>
-                    </div>
-                </div>
-
-                <div className="text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                        <span className="text-3xl font-bold text-slate-900">{yourData.score}</span>
-                        <span className="text-slate-400">vs</span>
-                        <span className="text-2xl font-semibold text-slate-500">{competitorData.score}</span>
-                    </div>
-                    <ComparisonBadge yourScore={yourData.score} competitorScore={competitorData.score} />
-                </div>
-            </div>
-
-            {/* SEO Comparison Hero */}
-            <SeoComparisonHero
-                yourData={yourData}
-                competitorData={competitorData}
+            <CategoryHeader
+                icon={<FileText />}
+                title="On-Page SEO"
+                subtitle="Title tags, meta descriptions, and page structure"
+                badge="Keyword Intelligence"
+                yourScore={yourData.score}
+                competitorScore={competitorData.score}
                 yourDomain={yourDomain}
                 competitorDomain={competitorDomain}
+                accentColor="purple"
             />
 
             {/* Title Tag Analysis - Full Width */}

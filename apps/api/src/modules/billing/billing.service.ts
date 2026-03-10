@@ -253,12 +253,21 @@ export class BillingService {
         tier: string;
         isPurchased: boolean;
     }[]> {
-        // Get all completed analyses linked to this user's email
+        // Get all completed analyses linked to this user's email OR userId
+        // Uses case-insensitive email match as safety net for pre-normalization data
         const analyses = await this.prisma.analysisRun.findMany({
             where: {
                 status: 'complete',
                 lead: {
-                    email: user.email,
+                    OR: [
+                        {
+                            email: {
+                                equals: user.email,
+                                mode: 'insensitive',
+                            },
+                        },
+                        { userId: user.id },
+                    ],
                 },
             },
             orderBy: { createdAt: 'desc' },
@@ -300,12 +309,20 @@ export class BillingService {
             competitorScore: number;
         }[];
     }> {
-        // Get all completed analyses for this user by email
+        // Get all completed analyses for this user by email OR userId
         const analyses = await this.prisma.analysisRun.findMany({
             where: {
                 status: 'complete',
                 lead: {
-                    email: user.email,
+                    OR: [
+                        {
+                            email: {
+                                equals: user.email,
+                                mode: 'insensitive',
+                            },
+                        },
+                        { userId: user.id },
+                    ],
                 },
             },
             orderBy: { createdAt: 'asc' },

@@ -27,6 +27,7 @@ export interface CopyForensics {
         phrase: string;
         count: number;
         competitorUsage: number; // how many competitors use this
+        replacementSuggestion?: string; // business-specific replacement
     }[];
     uniquePhrases?: string[]; // phrases only on your site
     verdict: {
@@ -194,6 +195,13 @@ export interface StrategicRoadmap {
         format: string;
         targetWordCount: number;
         keyInclusion: string;
+        // Part C expanded fields
+        description?: string;
+        intent?: string;
+        trafficPotential?: string;
+        priority?: string;
+        instructions?: string;
+        reasoning?: string;
     }[];
     aeoPhases: {
         phase: number;
@@ -232,6 +240,15 @@ export interface FullIntelligenceReport {
     trustAuthority: TrustAuthorityAnalysis;
     aeoReadiness: AeoReadinessAnalysis;
     strategicRoadmap: StrategicRoadmap;
+    gamePlan?: {
+        winningVector: string;
+        criticalGap: string;
+        tacticalFix: string;
+        competitiveNarrative: string;
+        competitorAdvantages: string[];
+        yourAdvantages: string[];
+        contentRewrites: { title: string; strategy: string; before: string; after: string }[];
+    };
     generatedAt: Date;
 }
 
@@ -306,6 +323,13 @@ export class IntelligenceEngine {
         const yourScore = this.calculateOverallScore(copyForensics, brandIdentity, contentStrategy, technicalForensics, trustAuthority, aeoReadiness, true);
         const competitorScore = this.calculateOverallScore(copyForensics, brandIdentity, contentStrategy, technicalForensics, trustAuthority, aeoReadiness, false);
 
+        // Generate Game Plan narrative
+        const gamePlan = await this.generateGamePlan(
+            yourDomain, competitorDomain,
+            copyForensics, brandIdentity, contentStrategy, technicalForensics, trustAuthority, aeoReadiness,
+            yourContent.markdown, competitorContent.markdown
+        );
+
         return {
             executiveSummary: {
                 yourScore,
@@ -322,6 +346,7 @@ export class IntelligenceEngine {
             trustAuthority,
             aeoReadiness,
             strategicRoadmap,
+            gamePlan,
             generatedAt: new Date(),
         };
     }
@@ -373,11 +398,11 @@ Provide a JSON response with this EXACT structure:
         "powerWords": ["<word>", "<word>", "<word>", "<word>", "<word>"]
     },
     "clichesDetected": [
-        {"phrase": "innovative solutions", "count": <times found on site A>, "competitorUsage": 1},
-        {"phrase": "customer-centric", "count": <times found>, "competitorUsage": 1},
-        {"phrase": "best-in-class", "count": <times found>, "competitorUsage": 1},
-        {"phrase": "cutting-edge", "count": <times found>, "competitorUsage": 1},
-        {"phrase": "industry-leading", "count": <times found>, "competitorUsage": 1}
+        {"phrase": "innovative solutions", "count": <times found on site A>, "competitorUsage": 1, "replacementSuggestion": "<specific replacement using their actual product/service>"},
+        {"phrase": "customer-centric", "count": <times found>, "competitorUsage": 1, "replacementSuggestion": "<specific replacement>"},
+        {"phrase": "best-in-class", "count": <times found>, "competitorUsage": 1, "replacementSuggestion": "<specific replacement>"},
+        {"phrase": "cutting-edge", "count": <times found>, "competitorUsage": 1, "replacementSuggestion": "<specific replacement>"},
+        {"phrase": "industry-leading", "count": <times found>, "competitorUsage": 1, "replacementSuggestion": "<specific replacement>"}
     ],
     "uniquePhrases": ["<phrase only found on site A, not generic>", "<unique ownable phrase>"],
     "verdict": {
@@ -404,7 +429,9 @@ Provide a JSON response with this EXACT structure:
     }
 }
 
-CRITICAL: For clichesDetected, find ACTUAL industry clichés used on Site A. Common offenders: "innovative", "solutions", "leverage", "synergy", "cutting-edge", "best-in-class", "customer-centric", "world-class", "state-of-the-art". Count real occurrences.`;
+CRITICAL: For clichesDetected, find ACTUAL industry clichés used on Site A. Common offenders: "innovative", "solutions", "leverage", "synergy", "cutting-edge", "best-in-class", "customer-centric", "world-class", "state-of-the-art". Count real occurrences.
+
+For each cliché, suggest a replacement SPECIFIC TO THIS BUSINESS — not a generic alternative. If the business makes shipping container pools, replace "innovative solutions" with "modular pool systems" not with "unique offerings". Reference their actual products, services, or differentiators.`;
 
         try {
             const response = await this.anthropic!.messages.create({
@@ -424,7 +451,12 @@ CRITICAL: For clichesDetected, find ACTUAL industry clichés used on Site A. Com
                 readingLevel: data.siteA.readingLevel,
                 emotionalDrivers: data.siteA.emotionalDrivers || [],
                 powerWords: data.siteA.powerWords || [],
-                clichesDetected: data.clichesDetected || [],
+                clichesDetected: (data.clichesDetected || []).map((c: any) => ({
+                    phrase: c.phrase,
+                    count: c.count,
+                    competitorUsage: c.competitorUsage,
+                    replacementSuggestion: c.replacementSuggestion || '',
+                })),
                 uniquePhrases: data.uniquePhrases || [],
                 verdict: {
                     winner: data.verdict.winner,
@@ -1053,10 +1085,16 @@ Provide a JSON response:
     ],
     "contentToCreate": [
         {
-            "title": "<content piece title>",
-            "format": "<pillar page/blog post/comparison>",
+            "title": "<content piece title — specific page name>",
+            "format": "<pillar page/blog post/FAQ page/comparison page/product page/landing page/glossary>",
             "targetWordCount": <number>,
-            "keyInclusion": "<key element to include>"
+            "keyInclusion": "<key element to include>",
+            "description": "<one sentence explaining what this content covers>",
+            "intent": "<informational/commercial/transactional/navigational>",
+            "trafficPotential": "<high/medium/low>",
+            "priority": "<high/medium/low — how urgently to create>",
+            "instructions": "<2-3 sentences of specific instructions: what to include, what schema to add, what questions to answer, what data to reference. Mention competitor content that ranks.>",
+            "reasoning": "<why this content matters — what gap does it close?>"
         }
     ],
     "aeoPhases": [
@@ -1111,7 +1149,18 @@ CRITICAL: Quick Wins must be HIGH IMPACT but LOW EFFORT actions that can move th
                 primaryOpportunity: data.primaryOpportunity,
                 primaryThreat: data.primaryThreat,
                 immediateActions: data.immediateActions || [],
-                contentToCreate: data.contentToCreate || [],
+                contentToCreate: (data.contentToCreate || []).map((c: any) => ({
+                    title: c.title,
+                    format: c.format,
+                    targetWordCount: c.targetWordCount,
+                    keyInclusion: c.keyInclusion || '',
+                    description: c.description || '',
+                    intent: c.intent || '',
+                    trafficPotential: c.trafficPotential || '',
+                    priority: c.priority || 'medium',
+                    instructions: c.instructions || '',
+                    reasoning: c.reasoning || '',
+                })),
                 aeoPhases: data.aeoPhases || [],
                 successMetrics: data.successMetrics || [],
                 quickWins: data.quickWins || [],
@@ -1119,6 +1168,115 @@ CRITICAL: Quick Wins must be HIGH IMPACT but LOW EFFORT actions that can move th
         } catch (error) {
             console.error('[IntelligenceEngine] Strategic roadmap generation failed:', error);
             return this.getDefaultRoadmap(yourDomain, competitorDomain);
+        }
+    }
+
+    /**
+     * GENERATE GAME PLAN NARRATIVE
+     * Strategic intelligence briefing + competitive advantages + content rewrites
+     */
+    private async generateGamePlan(
+        yourDomain: string,
+        competitorDomain: string,
+        copyForensics: CopyForensics,
+        brandIdentity: BrandIdentityAnalysis,
+        contentStrategy: ContentStrategy,
+        technicalForensics: TechnicalForensics,
+        trustAuthority: TrustAuthorityAnalysis,
+        aeoReadiness: AeoReadinessAnalysis,
+        yourMarkdown: string,
+        competitorMarkdown: string
+    ): Promise<FullIntelligenceReport['gamePlan']> {
+        const prompt = `You are a $5,000/engagement competitive strategy consultant. Based on the analysis below, produce a strategic game plan. Every statement MUST reference SPECIFIC data points — exact scores, exact URLs, exact content found during crawling. No generic advice.
+
+ANALYSIS DATA:
+- ${yourDomain} voice score: ${brandIdentity.yourBrand.voiceScore}/100 vs ${competitorDomain}: ${brandIdentity.competitorBrand.voiceScore}/100
+- ${yourDomain} trust score: ${trustAuthority.yourScore}/100 vs ${competitorDomain}: ${trustAuthority.competitorScore}/100
+- ${yourDomain} AEO readiness: ${aeoReadiness.yourScore}/10 vs ${competitorDomain}: ${aeoReadiness.competitorScore}/10
+- ${yourDomain} content depth: ${contentStrategy.yourSite.contentDepth}/10 (${contentStrategy.yourSite.wordCount} words) vs ${competitorDomain}: ${contentStrategy.competitorSite.contentDepth}/10 (${contentStrategy.competitorSite.wordCount} words)
+- Copy verdict: ${copyForensics.verdict.headline}
+- Brand archetypes: ${brandIdentity.yourBrand.archetype} vs ${brandIdentity.competitorBrand.archetype}
+- Trust verdict: ${trustAuthority.trustVerdict}
+- Content verdict: ${contentStrategy.contentVerdict.winReason}
+- Brand gap: ${brandIdentity.brandGapAnalysis}
+- ${yourDomain} schema: ${technicalForensics.yourSite.schemaTypes.join(', ') || 'none'}
+- ${competitorDomain} schema: ${technicalForensics.competitorSite.schemaTypes.join(', ') || 'none'}
+
+SITE A CONTENT (${yourDomain}):
+${yourMarkdown.substring(0, 4000)}
+
+SITE B CONTENT (${competitorDomain}):
+${competitorMarkdown.substring(0, 4000)}
+
+Provide a JSON response with this EXACT structure:
+{
+    "winningVector": "2-3 sentences explaining why the winning site wins. Cite specific evidence (exact scores, specific content, specific features found on their site). Example: 'They dominate through systematic conversion optimization, earning 84/100 in UX vs your 63. Their homepage leads with specific benefits ($32,500 starting price, installed in days) while yours leads with mission statements.'",
+
+    "criticalGap": "2-3 sentences identifying the losing site's biggest vulnerability. Be specific and direct — name the exact problem with evidence from the crawled content. Example: 'Your homepage buries product benefits under social mission content. Visitors searching how much does a container pool cost land on a page about faith-based community transformation. This costs estimated $6,500/month in bounced traffic.'",
+
+    "tacticalFix": "1-2 sentences giving ONE clear strategic directive. This is THE single most impactful change. Example: 'Lead with the pool. Move your social impact story to an About page and make your homepage answer: how much, how fast, and how big.'",
+
+    "competitiveNarrative": "3-4 sentences summarizing the overall competitive situation. Reference specific findings.",
+
+    "competitorAdvantages": [
+        "Specific advantage with evidence (e.g., 'Social proof with 1,500+ installed count prominently displayed')",
+        "Another specific advantage (e.g., 'Clear pricing: $32,500 starting price visible on homepage')",
+        "Another specific advantage (e.g., 'FAQ section answers 12 common questions — strong AEO positioning')"
+    ],
+
+    "yourAdvantages": [
+        "Specific advantage with evidence (e.g., 'Authentic social mission creates emotional connection')",
+        "Another specific advantage (e.g., 'Team bios with real photos build trust signals')",
+        "Another specific advantage (e.g., 'Blog content showing real installations adds E-E-A-T experience signals')"
+    ],
+
+    "contentRewrites": [
+        {
+            "title": "Strategic rewrite name (e.g., 'Lead with Product, Not Mission')",
+            "strategy": "1 sentence explaining the strategic reasoning for this rewrite",
+            "before": "ACTUAL copy from the crawled site — paste the real text you found",
+            "after": "Recommended replacement copy that addresses the strategic gap"
+        }
+    ]
+}
+
+CRITICAL RULES:
+1. winningVector and criticalGap: EXACTLY 2-3 sentences. Reference specific scores and content.
+2. tacticalFix: EXACTLY 1-2 sentences. ONE clear directive, not a list.
+3. competitorAdvantages and yourAdvantages: 3-4 items each. Each must be SPECIFIC ("social proof with 1,500+ installed count") not generic ("better marketing").
+4. contentRewrites: The "before" field MUST contain ACTUAL copy from the crawled site content above — not invented examples. Find real sentences/paragraphs from the site.
+5. Provide 2-4 content rewrites, each targeting the most impactful copy changes.`;
+
+        try {
+            const response = await this.anthropic!.messages.create({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 3000,
+                messages: [{ role: 'user', content: prompt }],
+            });
+
+            const text = response.content[0].type === 'text' ? response.content[0].text : '';
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('No JSON in game plan response');
+
+            const data = JSON.parse(jsonMatch[0]);
+
+            return {
+                winningVector: data.winningVector || '',
+                criticalGap: data.criticalGap || '',
+                tacticalFix: data.tacticalFix || '',
+                competitiveNarrative: data.competitiveNarrative || '',
+                competitorAdvantages: data.competitorAdvantages || [],
+                yourAdvantages: data.yourAdvantages || [],
+                contentRewrites: (data.contentRewrites || []).map((r: any) => ({
+                    title: r.title || '',
+                    strategy: r.strategy || '',
+                    before: r.before || '',
+                    after: r.after || '',
+                })),
+            };
+        } catch (error) {
+            console.error('[IntelligenceEngine] Game plan generation failed:', error);
+            return undefined;
         }
     }
 
