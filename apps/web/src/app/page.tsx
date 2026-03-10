@@ -615,10 +615,10 @@ export default function HomePage() {
 
                     <motion.div variants={staggerContainer} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14">
                         {[
-                            { value: '27B', label: 'Keywords Tracked', color: 'from-blue-400 to-blue-500', icon: '🔍' },
-                            { value: '43T', label: 'Backlinks Analyzed', color: 'from-violet-400 to-purple-500', icon: '🔗' },
-                            { value: '808M', label: 'Domains Indexed', color: 'from-emerald-400 to-teal-500', icon: '🌐' },
-                            { value: '142', label: 'GEO Databases', color: 'from-amber-400 to-orange-500', icon: '📍' },
+                            { value: '500+', label: 'Competitive Analyses', color: 'from-blue-400 to-blue-500', icon: '📊' },
+                            { value: '7', label: 'Intelligence Categories', color: 'from-violet-400 to-purple-500', icon: '🧠' },
+                            { value: '5', label: 'AI Platforms Tracked', color: 'from-emerald-400 to-teal-500', icon: '🤖' },
+                            { value: '100+', label: 'Data Points Per Report', color: 'from-amber-400 to-orange-500', icon: '📈' },
                         ].map((stat) => (
                             <motion.div key={stat.label} variants={fadeUp} className="rounded-2xl p-6 bg-white/5 ring-1 ring-white/10 backdrop-blur-md hover:bg-white/10 transition-all">
                                 <div className={`absolute top-0 left-6 right-6 h-0.5 rounded-b-full bg-gradient-to-r ${stat.color}`} />
